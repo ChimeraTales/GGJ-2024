@@ -18,7 +18,7 @@ public class BackAndFore : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float offset = 0;
+        float offset;
         if (isAngular)
         {
             transform.localRotation = transform.localRotation * Quaternion.Euler(dir * speed * axis);
