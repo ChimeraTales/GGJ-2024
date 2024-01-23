@@ -147,8 +147,7 @@ Preset:
   - target: {fileID: 0}
     propertyPath: m_Sprite
     value: 
-    objectReference: {fileID: -9095717837082945937, guid: 207ee8102dd4143d288186ef0be518ee,
-      type: 3}
+    objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_Color.r
     value: 1
@@ -195,7 +194,7 @@ Preset:
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_WasSpriteAssigned
-    value: 1
+    value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_MaskInteraction
@@ -205,4 +204,13 @@ Preset:
     propertyPath: m_SpriteSortPoint
     value: 0
     objectReference: {fileID: 0}
-  m_ExcludedProperties: []
+  m_ExcludedProperties:
+  - m_Sprite
+  - m_FlipX
+  - m_FlipY
+  - m_MaskInteraction
+  - m_SpriteSortPoint
+  - m_SortingLayerID
+  - m_RenderingLayerMask
+  - m_SortingOrder
+  - m_Color

@@ -35,6 +35,24 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": ""NormalizeVector2"",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Ragdoll"",
+                    ""type"": ""Button"",
+                    ""id"": ""1395b7bb-23b7-495f-aa36-3598cc6cad58"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Hold"",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Jump"",
+                    ""type"": ""Button"",
+                    ""id"": ""d7bf829d-a45e-4f84-837e-e04c32d0fe09"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -103,6 +121,50 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""Walk"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3bc961d2-c06e-48b5-88ef-4aab41e1ac0c"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""Ragdoll"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""01d2459f-4412-4c49-9926-8f07bc9513b0"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Ragdoll"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""18a02b61-02ba-4f26-89c9-885dec935034"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f3dd618d-c593-4bde-b853-8b209b6f80b9"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -123,6 +185,8 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         // Default
         m_Default = asset.FindActionMap("Default", throwIfNotFound: true);
         m_Default_Walk = m_Default.FindAction("Walk", throwIfNotFound: true);
+        m_Default_Ragdoll = m_Default.FindAction("Ragdoll", throwIfNotFound: true);
+        m_Default_Jump = m_Default.FindAction("Jump", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -185,11 +249,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Default;
     private List<IDefaultActions> m_DefaultActionsCallbackInterfaces = new List<IDefaultActions>();
     private readonly InputAction m_Default_Walk;
+    private readonly InputAction m_Default_Ragdoll;
+    private readonly InputAction m_Default_Jump;
     public struct DefaultActions
     {
         private @PlayerInput m_Wrapper;
         public DefaultActions(@PlayerInput wrapper) { m_Wrapper = wrapper; }
         public InputAction @Walk => m_Wrapper.m_Default_Walk;
+        public InputAction @Ragdoll => m_Wrapper.m_Default_Ragdoll;
+        public InputAction @Jump => m_Wrapper.m_Default_Jump;
         public InputActionMap Get() { return m_Wrapper.m_Default; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -202,6 +270,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Walk.started += instance.OnWalk;
             @Walk.performed += instance.OnWalk;
             @Walk.canceled += instance.OnWalk;
+            @Ragdoll.started += instance.OnRagdoll;
+            @Ragdoll.performed += instance.OnRagdoll;
+            @Ragdoll.canceled += instance.OnRagdoll;
+            @Jump.started += instance.OnJump;
+            @Jump.performed += instance.OnJump;
+            @Jump.canceled += instance.OnJump;
         }
 
         private void UnregisterCallbacks(IDefaultActions instance)
@@ -209,6 +283,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Walk.started -= instance.OnWalk;
             @Walk.performed -= instance.OnWalk;
             @Walk.canceled -= instance.OnWalk;
+            @Ragdoll.started -= instance.OnRagdoll;
+            @Ragdoll.performed -= instance.OnRagdoll;
+            @Ragdoll.canceled -= instance.OnRagdoll;
+            @Jump.started -= instance.OnJump;
+            @Jump.performed -= instance.OnJump;
+            @Jump.canceled -= instance.OnJump;
         }
 
         public void RemoveCallbacks(IDefaultActions instance)
@@ -247,5 +327,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     public interface IDefaultActions
     {
         void OnWalk(InputAction.CallbackContext context);
+        void OnRagdoll(InputAction.CallbackContext context);
+        void OnJump(InputAction.CallbackContext context);
     }
 }
