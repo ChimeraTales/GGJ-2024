@@ -3,7 +3,7 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [SerializeField] float speed = 1, maxSpeed = 5, jumpForce, airControlMultiplier = 0.2f;
-    [SerializeField] Rigidbody2D mainRigidbody, ragdollRootRigidbody;
+    [SerializeField] Rigidbody mainRigidbody, ragdollRootRigidbody;
     [SerializeField] LayerMask groundedLayers;
 
     PlayerInput input;
@@ -36,12 +36,12 @@ public class Player : MonoBehaviour
         bool isGrounded = Grounded();
         animator.SetBool("Grounded", isGrounded);
         Vector2 inputWalk = Ragdoll? Vector2.zero : speed * Time.deltaTime * (isGrounded? 1 : airControlMultiplier) * input.Default.Walk.ReadValue<Vector2>();
-        mainRigidbody.AddForce(new Vector2(inputWalk.x, 0), ForceMode2D.Force);
-        if (Mathf.Abs(mainRigidbody.velocity.x) > maxSpeed) mainRigidbody.velocity = new(Mathf.Sign(mainRigidbody.velocity.x) * maxSpeed, mainRigidbody.velocity.y); 
+        mainRigidbody.AddForce(new Vector3(inputWalk.x, 0, inputWalk.y), ForceMode.Acceleration);
+        if (new Vector3(mainRigidbody.velocity.x, 0, mainRigidbody.velocity.z).magnitude > maxSpeed) mainRigidbody.velocity = new Vector3(mainRigidbody.velocity.x, 0, mainRigidbody.velocity.z).normalized * maxSpeed + Vector3.up * mainRigidbody.velocity.y; 
         if (inputWalk.magnitude > 0) lastX = inputWalk.x;
         animator.SetBool("Moving", inputWalk.magnitude > 0);
         if (spriteRenderer != null) spriteRenderer.flipX = lastX < 0;
-        else transform.localScale = new Vector3(lastX < 0 ? -1 : 1, 1, 1);
+        else transform.rotation = Quaternion.Euler(0, lastX < 0 ? 180 : 0, 0);
     }
 
     private void Jump()
@@ -49,32 +49,31 @@ public class Player : MonoBehaviour
         if (!Grounded() || Ragdoll) return;
         else
         {
-            mainRigidbody.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
+            mainRigidbody.AddForce(new Vector3(0, jumpForce, 0), ForceMode.Impulse);
             animator.SetTrigger("Jump");
         }
     }
 
     private bool Grounded()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 0.05f, groundedLayers);
-        return hit;
+        return Physics.Raycast(transform.position + Vector3.up * 0.05f, Vector2.down, 0.1f, groundedLayers);
     }
 
     private void SetRagdoll(bool enabled)
     {
-        foreach(HingeJoint2D hinge in transform.GetComponentsInChildren<HingeJoint2D>(true))
+        foreach(HingeJoint hinge in transform.GetComponentsInChildren<HingeJoint>(true))
         {
-            hinge.enabled = enabled;
+            //hinge.enabled = enabled;
         }
-        foreach (Rigidbody2D rigidbody in transform.GetComponentsInChildren<Rigidbody2D>())
+        foreach (Rigidbody rigidbody in transform.GetComponentsInChildren<Rigidbody>())
         {
             if (mainRigidbody == rigidbody)
             {
                 if (!enabled) rigidbody.velocity = ragdollRootRigidbody.velocity;
                 continue;
             }
-            rigidbody.velocity = enabled? mainRigidbody.velocity : Vector2.zero;
-            rigidbody.angularVelocity = 0;
+            rigidbody.velocity = enabled? mainRigidbody.velocity : Vector3.zero;
+            rigidbody.angularVelocity = Vector3.zero;
         }
         if (!enabled) mainRigidbody.transform.position = ragdollRootRigidbody.transform.position;
         animator.enabled = !enabled;
