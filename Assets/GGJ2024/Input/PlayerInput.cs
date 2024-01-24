@@ -42,13 +42,31 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""id"": ""1395b7bb-23b7-495f-aa36-3598cc6cad58"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": ""Hold"",
+                    ""interactions"": """",
                     ""initialStateCheck"": false
                 },
                 {
                     ""name"": ""Jump"",
                     ""type"": ""Button"",
                     ""id"": ""d7bf829d-a45e-4f84-837e-e04c32d0fe09"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Interact"",
+                    ""type"": ""Button"",
+                    ""id"": ""204e1141-232d-488c-8f2d-b570a78de67e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Drop"",
+                    ""type"": ""Button"",
+                    ""id"": ""493016fe-7e5e-422f-8eaa-fe857087003a"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -61,7 +79,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""id"": ""b854c1d2-491b-4929-8d46-0f2e14709852"",
                     ""path"": ""<Gamepad>/leftStick"",
                     ""interactions"": """",
-                    ""processors"": """",
+                    ""processors"": ""StickDeadzone"",
                     ""groups"": ""Gamepad"",
                     ""action"": ""Walk"",
                     ""isComposite"": false,
@@ -136,7 +154,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""01d2459f-4412-4c49-9926-8f07bc9513b0"",
-                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
@@ -165,6 +183,50 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""68a4ec88-28e7-4417-bfd3-36ed04b89cab"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0662d5bd-dda7-4866-a89d-5694938cc53e"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fa60e4a9-1e3a-443a-97b3-fef121256d52"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""Drop"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""035dbc6f-6ae6-44d4-ac5a-48f56e790448"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Drop"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -187,6 +249,8 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Default_Walk = m_Default.FindAction("Walk", throwIfNotFound: true);
         m_Default_Ragdoll = m_Default.FindAction("Ragdoll", throwIfNotFound: true);
         m_Default_Jump = m_Default.FindAction("Jump", throwIfNotFound: true);
+        m_Default_Interact = m_Default.FindAction("Interact", throwIfNotFound: true);
+        m_Default_Drop = m_Default.FindAction("Drop", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -251,6 +315,8 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Default_Walk;
     private readonly InputAction m_Default_Ragdoll;
     private readonly InputAction m_Default_Jump;
+    private readonly InputAction m_Default_Interact;
+    private readonly InputAction m_Default_Drop;
     public struct DefaultActions
     {
         private @PlayerInput m_Wrapper;
@@ -258,6 +324,8 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         public InputAction @Walk => m_Wrapper.m_Default_Walk;
         public InputAction @Ragdoll => m_Wrapper.m_Default_Ragdoll;
         public InputAction @Jump => m_Wrapper.m_Default_Jump;
+        public InputAction @Interact => m_Wrapper.m_Default_Interact;
+        public InputAction @Drop => m_Wrapper.m_Default_Drop;
         public InputActionMap Get() { return m_Wrapper.m_Default; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -276,6 +344,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Jump.started += instance.OnJump;
             @Jump.performed += instance.OnJump;
             @Jump.canceled += instance.OnJump;
+            @Interact.started += instance.OnInteract;
+            @Interact.performed += instance.OnInteract;
+            @Interact.canceled += instance.OnInteract;
+            @Drop.started += instance.OnDrop;
+            @Drop.performed += instance.OnDrop;
+            @Drop.canceled += instance.OnDrop;
         }
 
         private void UnregisterCallbacks(IDefaultActions instance)
@@ -289,6 +363,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Jump.started -= instance.OnJump;
             @Jump.performed -= instance.OnJump;
             @Jump.canceled -= instance.OnJump;
+            @Interact.started -= instance.OnInteract;
+            @Interact.performed -= instance.OnInteract;
+            @Interact.canceled -= instance.OnInteract;
+            @Drop.started -= instance.OnDrop;
+            @Drop.performed -= instance.OnDrop;
+            @Drop.canceled -= instance.OnDrop;
         }
 
         public void RemoveCallbacks(IDefaultActions instance)
@@ -329,5 +409,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         void OnWalk(InputAction.CallbackContext context);
         void OnRagdoll(InputAction.CallbackContext context);
         void OnJump(InputAction.CallbackContext context);
+        void OnInteract(InputAction.CallbackContext context);
+        void OnDrop(InputAction.CallbackContext context);
     }
 }
