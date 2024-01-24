@@ -1204,11 +1204,13 @@ MonoBehaviour:
   maxSpeed: 4
   jumpForce: 5
   airControlMultiplier: 0.2
+  maxSlope: 40
+  ragdollBoost: 3
   mainRigidbody: {fileID: 5455484734311066960}
   ragdollRootRigidbody: {fileID: 1073802253248778772}
   groundedLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 256
   spriteMaterial: {fileID: 0}
   flippedSpriteMaterial: {fileID: 0}
   unflippedSpriteMaterial: {fileID: 0}

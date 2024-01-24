@@ -6,7 +6,7 @@ public class Player : MonoBehaviour
 {
     public Transform holdTransform;
 
-    [SerializeField] float speed = 1, maxSpeed = 5, jumpForce, airControlMultiplier = 0.2f;
+    [SerializeField] float speed = 1, maxSpeed = 5, jumpForce, airControlMultiplier = 0.2f, maxSlope = Mathf.PI / 2f, ragdollBoost = 10f;
     [SerializeField] Rigidbody mainRigidbody, ragdollRootRigidbody;
     [SerializeField] LayerMask groundedLayers;
 
@@ -15,11 +15,13 @@ public class Player : MonoBehaviour
 
     PlayerInput input;
     Animator animator;
-    SpriteRenderer spriteRenderer;
-    float lastX = 0;
-    bool ragdoll;
+    float lastX = 0, baseDynamicFriction;
+    bool ragdoll, hasRagdolled, isGrounded;
     List<IInteractable> interactables = new();
     IInteractable nextInteractable = null;
+    Vector3 groundNormal, steepGroundNormal;
+    Collider baseCollider;
+    PhysicMaterialCombine baseCombine;
 
     public bool Ragdoll
     {
@@ -35,7 +37,9 @@ public class Player : MonoBehaviour
     {
         BindInputs();
         animator = GetComponent<Animator>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        baseCollider = mainRigidbody.GetComponent<Collider>();
+        baseDynamicFriction = baseCollider.material.dynamicFriction;
+        baseCombine = baseCollider.material.frictionCombine;
         unflippedSpriteMaterial = GetComponentInChildren<SpriteRenderer>().material;
         flippedSpriteMaterial = new(unflippedSpriteMaterial);
         flippedSpriteMaterial.SetInt("_SpriteFlipped", 1);
@@ -55,25 +59,37 @@ public class Player : MonoBehaviour
     }
     void LateUpdate()
     {
-        bool isGrounded = Grounded();
+        Vector2 inputWalk = input.Default.Walk.ReadValue<Vector2>();
+        baseCollider.material.dynamicFriction = inputWalk.magnitude > 0 ? 0 : baseDynamicFriction;
+        baseCollider.material.frictionCombine = inputWalk.magnitude > 0 ? PhysicMaterialCombine.Minimum : baseCombine;
+        isGrounded = Grounded();
+        hasRagdolled &= !isGrounded;
         animator.SetBool("Grounded", isGrounded);
-        Vector2 inputWalk = speed * Time.deltaTime * (isGrounded? 1 : airControlMultiplier) * input.Default.Walk.ReadValue<Vector2>();
-        (Ragdoll? ragdollRootRigidbody : mainRigidbody).AddForce(new Vector3(inputWalk.x, 0, inputWalk.y), ForceMode.Acceleration);
-        if (new Vector3(mainRigidbody.velocity.x, 0, mainRigidbody.velocity.z).magnitude > maxSpeed) mainRigidbody.velocity = new Vector3(mainRigidbody.velocity.x, 0, mainRigidbody.velocity.z).normalized * maxSpeed + Vector3.up * mainRigidbody.velocity.y; 
-        if (inputWalk.magnitude > 0) lastX = inputWalk.x;
+        inputWalk *= speed * Time.deltaTime * (isGrounded? 1 : airControlMultiplier);
+        if (Mathf.Abs(inputWalk.x) > 0) lastX = inputWalk.x;
         animator.SetBool("Moving", inputWalk.magnitude > 0);
         if (!Ragdoll)
         {
             isFlipped = lastX < 0;
-            if (spriteRenderer != null) spriteRenderer.flipX = isFlipped;
-            else transform.rotation = Quaternion.Euler(0, isFlipped ? 180 : 0, 0);
+            transform.rotation = Quaternion.Euler(0, isFlipped ? 180 : 0, 0);
+            float upAngle = Vector3.SignedAngle(Vector3.up, Vector3.Scale(new Vector3(groundNormal.x * (isFlipped ? -1 : 1), groundNormal.y, groundNormal.z), new Vector3(1, 1, 0)), Vector3.forward);
+            transform.rotation *= Quaternion.AngleAxis(upAngle, Vector3.forward);
             spriteMaterial.SetInt("_SpriteFlipped", isFlipped ? 1 : 0);
         }
+        Vector3 moveVector = new Vector3(inputWalk.x, 0, inputWalk.y);
+        Vector3 planeVector = Vector3.ProjectOnPlane(moveVector, steepGroundNormal);
+        if (planeVector.y > 0) moveVector = planeVector;
+        float slopeAngle = Vector3.Angle(Vector3.up, steepGroundNormal);
+        moveVector = new Vector3(moveVector.x, Mathf.Max(moveVector.y, 0), moveVector.z);
+        if (slopeAngle > maxSlope) moveVector = Vector3.Scale(moveVector, new Vector3(1, 0, 1));
+        else moveVector = Vector3.Scale(moveVector, new Vector3(1, 1, 1));
+        (Ragdoll? ragdollRootRigidbody : mainRigidbody).AddForce(moveVector, ForceMode.Acceleration);
+        if (new Vector3(mainRigidbody.velocity.x, 0, mainRigidbody.velocity.z).magnitude > maxSpeed) mainRigidbody.velocity = new Vector3(mainRigidbody.velocity.x, 0, mainRigidbody.velocity.z).normalized * maxSpeed + Vector3.up * mainRigidbody.velocity.y;
     }
 
     private void Jump()
     {
-        if (!Grounded() || Ragdoll) return;
+        if (!isGrounded || Ragdoll) return;
         else
         {
             mainRigidbody.AddForce(new Vector3(0, jumpForce, 0), ForceMode.Impulse);
@@ -83,17 +99,27 @@ public class Player : MonoBehaviour
 
     private bool Grounded()
     {
-        float radius = mainRigidbody.GetComponent<CapsuleCollider>().radius;
-        bool hit = Physics.SphereCast(transform.position + (radius + 0.05f) * Vector3.up, mainRigidbody.GetComponent<CapsuleCollider>().radius, Vector2.down, out _, 0.1f, groundedLayers);
-        return hit;
+        CapsuleCollider collider = mainRigidbody.GetComponent<CapsuleCollider>();
+        RaycastHit[] hits = Physics.SphereCastAll(transform.position + (collider.height / 2) * Vector3.up, collider.radius, -transform.up, collider.height / 2 + 0.1f, groundedLayers);
+        if (hits.Length > 0)
+        {
+            RaycastHit steepestHit = default, closestHit = default;
+            float steepestAngle = 0, closestDistance = float.MaxValue;
+            foreach (RaycastHit hit in hits)
+            {
+                float hitAngle = Vector3.Angle(Vector3.up, hit.normal);
+                if (hitAngle > steepestAngle) { steepestAngle = hitAngle; steepestHit = hit; }
+                if (hit.distance < closestDistance) { closestDistance = hit.distance; closestHit = hit; }
+            }
+            groundNormal = closestHit.normal;
+            steepGroundNormal = steepestHit.normal;
+            return true;
+        }
+        else return false;
     }
 
     private void SetRagdoll(bool enabled)
     {
-        foreach(HingeJoint hinge in transform.GetComponentsInChildren<HingeJoint>(true))
-        {
-            //hinge.enabled = enabled;
-        }
         foreach (Rigidbody rigidbody in transform.GetComponentsInChildren<Rigidbody>())
         {
             if (mainRigidbody == rigidbody)
@@ -106,6 +132,8 @@ public class Player : MonoBehaviour
         }
         if (!enabled) mainRigidbody.transform.position = ragdollRootRigidbody.transform.position;
         animator.enabled = !enabled;
+        if (!hasRagdolled) ragdollRootRigidbody.AddForce(mainRigidbody.velocity.normalized * ragdollBoost, ForceMode.Impulse);
+        if (enabled) hasRagdolled = true;
     }
 
     private void Interact()
