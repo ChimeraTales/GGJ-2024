@@ -5,10 +5,12 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     public Transform holdTransform;
+    public Rigidbody ragdollRootRigidbody;
 
     [SerializeField] float speed = 1, maxSpeed = 5, jumpForce, airControlMultiplier = 0.2f, maxSlope = Mathf.PI / 2f, ragdollBoost = 10f;
-    [SerializeField] Rigidbody mainRigidbody, ragdollRootRigidbody;
+    [SerializeField] Rigidbody mainRigidbody;
     [SerializeField] LayerMask groundedLayers;
+    [SerializeField] readonly LayerMask cameraZoneLayers;
     [SerializeField] Collider baseCollider;
     [SerializeField] bool jauntyRotate;
     [SerializeField] SpriteRenderer midpointRenderer;
@@ -161,9 +163,12 @@ public class Player : MonoBehaviour
             rigidbody.angularVelocity = Vector3.zero;
         }
         if (!enabled) mainRigidbody.transform.position = ragdollRootRigidbody.transform.position;
+        else if (GameManager.Camera.CurrentView.target == transform) GameManager.Camera.target = ragdollRootRigidbody.transform;
         animator.enabled = !enabled;
         if (!hasRagdolled) ragdollRootRigidbody.AddForce(mainRigidbody.velocity.normalized * ragdollBoost, ForceMode.Impulse);
         if (enabled) hasRagdolled = true;
+        else GameManager.Camera.target = GameManager.Camera.CurrentView.target;
+        if (isFlipped) Flip();
     }
 
     private void Interact()
@@ -230,7 +235,13 @@ public class Player : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         IInteractable[] newInteractables = other.GetComponentsInChildren<IInteractable>();
-        if (newInteractables.Length > 0) interactables.AddRange(newInteractables);
+        if (newInteractables.Length > 0) { interactables.AddRange(newInteractables); return; }
+
+        if (other.gameObject.layer == LayerMask.NameToLayer("Camera Zone"))
+        {
+            GameManager.Camera.CurrentView = other.gameObject.GetComponent<CameraView>();
+            return;
+        }
     }
 
     private void OnTriggerExit(Collider other)
@@ -240,6 +251,7 @@ public class Player : MonoBehaviour
         {
             interactables.RemoveAll(interactable => oldInteractables.Contains(interactable));
             interactables.TrimExcess();
+            return;
         }
     }
 }

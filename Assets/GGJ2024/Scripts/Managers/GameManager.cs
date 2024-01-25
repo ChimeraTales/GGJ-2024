@@ -9,6 +9,9 @@ public class GameManager : MonoBehaviour
         get { return instance.currentTime; }
     }
 
+    public static FollowCamera Camera { get { return instance.cameraScript; } }
+    public static Player Player { get { return instance.player; } }
+
     [SerializeField] private FollowCamera cameraScript;
     [SerializeField] private Player player;
     [SerializeField] private float startTime = 8f, endTime = 20f, gameDuration;
