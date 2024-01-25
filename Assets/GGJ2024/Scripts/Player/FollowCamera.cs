@@ -7,7 +7,7 @@ public class FollowCamera : MonoBehaviour
     [SerializeField] float speed;
 
     // Update is called once per frame
-    void LateUpdate()
+    void FixedUpdate()
     {
         if (target == null) return;
         transform.position = Vector3.Lerp(transform.position, target.position, speed * Time.deltaTime);

@@ -24,13 +24,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5618247780294717790}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0.91025496, w: -0.4140482}
-  m_LocalPosition: {x: 0.108060524, y: 0.56824493, z: 0.055}
+  m_LocalRotation: {x: -0, y: -0, z: -0.02693137, w: -0.99963737}
+  m_LocalPosition: {x: 0.19515043, y: -0.010880894, z: -0.055}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6657977000538415208}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 35.077}
+  m_Father: {fileID: 545551988696117020}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 45}
 --- !u!1001 &4185905517340792627
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -774,7 +774,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -1841215587777104037, guid: cfc787d929d83c44481974a0cd9623c8,
+    - targetCorrespondingSourceObject: {fileID: -4790314570267789265, guid: cfc787d929d83c44481974a0cd9623c8,
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 2369485107168429204}
@@ -933,6 +933,12 @@ PrefabInstance:
       addedObject: {fileID: 8200596113760640175}
   m_SourcePrefab: {fileID: 4843985084834002234, guid: cfc787d929d83c44481974a0cd9623c8,
     type: 3}
+--- !u!4 &545551988696117020 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -4790314570267789265, guid: cfc787d929d83c44481974a0cd9623c8,
+    type: 3}
+  m_PrefabInstance: {fileID: 4185905517340792627}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1018410552952861289 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3761998702906025306, guid: cfc787d929d83c44481974a0cd9623c8,
@@ -1524,7 +1530,7 @@ MonoBehaviour:
   ragdollRootRigidbody: {fileID: 4668841793479462862}
   groundedLayers:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 768
   baseCollider: {fileID: 6159052998204002601}
   jauntyRotate: 0
   midpointRenderer: {fileID: 8090726702947189941}
@@ -1885,12 +1891,6 @@ CharacterJoint:
   m_EnablePreprocessing: 0
   m_MassScale: 1
   m_ConnectedMassScale: 1
---- !u!4 &6657977000538415208 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -1841215587777104037, guid: cfc787d929d83c44481974a0cd9623c8,
-    type: 3}
-  m_PrefabInstance: {fileID: 4185905517340792627}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &6669372345421743234 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -1830418390097898575, guid: cfc787d929d83c44481974a0cd9623c8,
