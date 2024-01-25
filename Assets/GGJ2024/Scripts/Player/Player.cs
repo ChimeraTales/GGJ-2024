@@ -9,19 +9,21 @@ public class Player : MonoBehaviour
     [SerializeField] float speed = 1, maxSpeed = 5, jumpForce, airControlMultiplier = 0.2f, maxSlope = Mathf.PI / 2f, ragdollBoost = 10f;
     [SerializeField] Rigidbody mainRigidbody, ragdollRootRigidbody;
     [SerializeField] LayerMask groundedLayers;
+    [SerializeField] Collider baseCollider;
+    [SerializeField] bool jauntyRotate;
+    [SerializeField] SpriteRenderer midpointRenderer;
 
     [HideInInspector] public Material spriteMaterial, flippedSpriteMaterial, unflippedSpriteMaterial;
-    [HideInInspector] public bool isFlipped;
-
+    
     PlayerInput input;
     Animator animator;
     float lastX = 0, baseDynamicFriction;
-    bool ragdoll, hasRagdolled, isGrounded;
+    bool ragdoll, hasRagdolled, isGrounded, isFlipped;
     List<IInteractable> interactables = new();
     IInteractable nextInteractable = null;
     Vector3 groundNormal, steepGroundNormal;
-    Collider baseCollider;
     PhysicMaterialCombine baseCombine;
+    Dictionary<Transform, Vector3> bonePositions = new();
 
     public bool Ragdoll
     {
@@ -44,7 +46,20 @@ public class Player : MonoBehaviour
         flippedSpriteMaterial = new(unflippedSpriteMaterial);
         flippedSpriteMaterial.SetInt("_SpriteFlipped", 1);
         spriteMaterial = new(unflippedSpriteMaterial);
-        foreach (SpriteRenderer spriteRenderer in GetComponentsInChildren<SpriteRenderer>()) spriteRenderer.material = spriteMaterial;
+        foreach (SpriteRenderer spriteRenderer in GetComponentsInChildren<SpriteRenderer>())
+        {
+            spriteRenderer.material = spriteMaterial;
+        }
+        SaveBoneZsRecursively(ragdollRootRigidbody.transform);
+    }
+
+    private void SaveBoneZsRecursively(Transform currentBone)
+    {
+        foreach (Transform bone in currentBone)
+        {
+            bonePositions.Add(bone, bone.localPosition);
+            SaveBoneZsRecursively(bone);
+        }
     }
 
     private void BindInputs()
@@ -57,7 +72,7 @@ public class Player : MonoBehaviour
         actions.Interact.performed += (_) => Interact();
         actions.Drop.performed += (_) => Drop();
     }
-    void LateUpdate()
+    private void LateUpdate()
     {
         Vector2 inputWalk = input.Default.Walk.ReadValue<Vector2>();
         baseCollider.material.dynamicFriction = inputWalk.magnitude > 0 ? 0 : baseDynamicFriction;
@@ -70,10 +85,15 @@ public class Player : MonoBehaviour
         animator.SetBool("Moving", inputWalk.magnitude > 0);
         if (!Ragdoll)
         {
-            isFlipped = lastX < 0;
+            bool currentFlipped = lastX < 0;
+            if (currentFlipped != isFlipped)
+            {
+                isFlipped = currentFlipped;
+                Flip();
+            }
             transform.rotation = Quaternion.Euler(0, isFlipped ? 180 : 0, 0);
             float upAngle = Vector3.SignedAngle(Vector3.up, Vector3.Scale(new Vector3(groundNormal.x * (isFlipped ? -1 : 1), groundNormal.y, groundNormal.z), new Vector3(1, 1, 0)), Vector3.forward);
-            transform.rotation *= Quaternion.AngleAxis(upAngle, Vector3.forward);
+            if (jauntyRotate) transform.rotation *= isGrounded? Quaternion.AngleAxis(Mathf.Abs(upAngle) < maxSlope? upAngle : maxSlope * Mathf.Sign(upAngle), Vector3.forward) : Quaternion.identity;
             spriteMaterial.SetInt("_SpriteFlipped", isFlipped ? 1 : 0);
         }
         Vector3 moveVector = new Vector3(inputWalk.x, 0, inputWalk.y);
@@ -85,6 +105,14 @@ public class Player : MonoBehaviour
         else moveVector = Vector3.Scale(moveVector, new Vector3(1, 1, 1));
         (Ragdoll? ragdollRootRigidbody : mainRigidbody).AddForce(moveVector, ForceMode.Acceleration);
         if (new Vector3(mainRigidbody.velocity.x, 0, mainRigidbody.velocity.z).magnitude > maxSpeed) mainRigidbody.velocity = new Vector3(mainRigidbody.velocity.x, 0, mainRigidbody.velocity.z).normalized * maxSpeed + Vector3.up * mainRigidbody.velocity.y;
+    }
+
+    private void Flip()
+    {
+        foreach (KeyValuePair<Transform, Vector3> kvp in bonePositions)
+        {
+            kvp.Key.localPosition = isFlipped ? Vector3.Scale(kvp.Value, new Vector3(1, 1, -1)) : kvp.Value;
+        }
     }
 
     private void Jump()
@@ -127,6 +155,8 @@ public class Player : MonoBehaviour
                 if (!enabled) rigidbody.velocity = ragdollRootRigidbody.velocity;
                 continue;
             }
+            rigidbody.isKinematic = !enabled;
+            if (!enabled) continue;
             rigidbody.velocity = enabled? mainRigidbody.velocity : Vector3.zero;
             rigidbody.angularVelocity = Vector3.zero;
         }

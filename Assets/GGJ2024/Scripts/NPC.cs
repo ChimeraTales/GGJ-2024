@@ -1,13 +1,20 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class NPC : MonoBehaviour
 {
     [SerializeField] private float ragdollRelativeVelocity = 2, forceRagdollDurationMultiplier = 0.25f, forceRagdollMinDuration = 1f;
     [SerializeField] Rigidbody mainRigidbody, ragdollRootRigidbody;
+    [SerializeField] NavMeshAgent agent;
 
-    private bool ragdoll;
+    [HideInInspector] public Material spriteMaterial, flippedSpriteMaterial, unflippedSpriteMaterial;
+
+    private bool ragdoll, isFlipped;
     Animator animator;
+    Dictionary<Transform, Vector3> bonePositions = new();
+    float lastX = 0;
 
     public bool Ragdoll
     {
@@ -21,31 +28,66 @@ public class NPC : MonoBehaviour
     void Awake()
     {
         animator = GetComponent<Animator>();
-        /*spriteRenderer = GetComponent<SpriteRenderer>();
         unflippedSpriteMaterial = GetComponentInChildren<SpriteRenderer>().material;
         flippedSpriteMaterial = new(unflippedSpriteMaterial);
         flippedSpriteMaterial.SetInt("_SpriteFlipped", 1);
         spriteMaterial = new(unflippedSpriteMaterial);
-        foreach (SpriteRenderer spriteRenderer in GetComponentsInChildren<SpriteRenderer>()) spriteRenderer.material = spriteMaterial;*/
+        foreach (SpriteRenderer spriteRenderer in GetComponentsInChildren<SpriteRenderer>()) spriteRenderer.material = spriteMaterial;
+        agent = GetComponent<NavMeshAgent>();
+        SendToWaypoint(Vector3.zero);
+        SaveBoneZsRecursively(ragdollRootRigidbody.transform);
+    }
+
+    private void SaveBoneZsRecursively(Transform currentBone)
+    {
+        foreach (Transform bone in currentBone)
+        {
+            bonePositions.Add(bone, bone.localPosition);
+            SaveBoneZsRecursively(bone);
+        }
+    }
+
+    private void LateUpdate()
+    {
+        float currentX = transform.position.x;
+        if (!Ragdoll)
+        {
+            bool currentFlipped = lastX < currentX;
+            if (currentFlipped != isFlipped)
+            {
+                isFlipped = currentFlipped;
+                Flip();
+            }
+            transform.rotation = Quaternion.Euler(0, isFlipped ? 180 : 0, 0);
+            spriteMaterial.SetInt("_SpriteFlipped", isFlipped ? 1 : 0);
+        }
+        animator.SetBool("Moving", agent.pathPending || agent.remainingDistance > agent.stoppingDistance || agent.hasPath || agent.velocity.sqrMagnitude != 0f);
+    }
+
+    private void Flip()
+    {
+        foreach (KeyValuePair<Transform, Vector3> kvp in bonePositions)
+        {
+            kvp.Key.localPosition = isFlipped ? Vector3.Scale(kvp.Value, new Vector3(1, 1, -1)) : kvp.Value;
+        }
+    }
+
+    public void SendToWaypoint(Vector3 destination)
+    {
+        agent.SetDestination(destination);
     }
 
     private void SetRagdoll(bool enabled)
     {
-        foreach (HingeJoint hinge in transform.GetComponentsInChildren<HingeJoint>(true))
-        {
-            //hinge.enabled = enabled;
-        }
         foreach (Rigidbody rigidbody in transform.GetComponentsInChildren<Rigidbody>())
         {
-            if (mainRigidbody == rigidbody)
-            {
-                if (!enabled) rigidbody.velocity = ragdollRootRigidbody.velocity;
-                continue;
-            }
+            if (mainRigidbody == rigidbody) continue;
+            rigidbody.isKinematic = !enabled;
+            if (!enabled) continue;
             rigidbody.velocity = enabled ? mainRigidbody.velocity : Vector3.zero;
             rigidbody.angularVelocity = Vector3.zero;
         }
-        mainRigidbody.transform.GetComponent<CapsuleCollider>().enabled = !enabled;
+        if (!enabled) mainRigidbody.transform.position = ragdollRootRigidbody.transform.position;
         animator.enabled = !enabled;
     }
 
@@ -58,7 +100,7 @@ public class NPC : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.relativeVelocity.magnitude > ragdollRelativeVelocity)
+        if (collision.relativeVelocity.magnitude > ragdollRelativeVelocity && collision.gameObject.layer.ToString() != "Ground")
         {
             StartCoroutine(ForceRagdoll(Mathf.Max((collision.relativeVelocity.magnitude - ragdollRelativeVelocity) * forceRagdollDurationMultiplier, forceRagdollMinDuration)));
         }

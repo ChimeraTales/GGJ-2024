@@ -14,9 +14,9 @@ TagManager:
   - Player
   - NPC
   - Ground
-  - 
-  - 
-  - 
+  - Environment
+  - Player Ragdoll
+  - NPC Ragdoll
   - 
   - 
   - 
