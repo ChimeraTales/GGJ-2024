@@ -5,6 +5,7 @@ using UnityEngine.AI;
 
 public class NPC : MonoBehaviour
 {
+    [SerializeField] private Waypoint[] waypoints;
     [SerializeField] private float ragdollRelativeVelocity = 2, forceRagdollDurationMultiplier = 0.25f, forceRagdollMinDuration = 1f;
     [SerializeField] Rigidbody mainRigidbody, ragdollRootRigidbody;
     [SerializeField] NavMeshAgent agent;
@@ -34,8 +35,9 @@ public class NPC : MonoBehaviour
         spriteMaterial = new(unflippedSpriteMaterial);
         foreach (SpriteRenderer spriteRenderer in GetComponentsInChildren<SpriteRenderer>()) spriteRenderer.material = spriteMaterial;
         agent = GetComponent<NavMeshAgent>();
-        SendToWaypoint(Vector3.zero);
         SaveBoneZsRecursively(ragdollRootRigidbody.transform);
+        for (int i = 0; i < waypoints.Length; i++) waypoints[i].location = waypoints[i].transform.position;
+        lastX = transform.position.x;
     }
 
     private void SaveBoneZsRecursively(Transform currentBone)
@@ -47,20 +49,33 @@ public class NPC : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        for (int i = 0; i < waypoints.Length; i++)
+        {
+            if (!waypoints[i].triggered && waypoints[i].time < GameManager.CurrentTime)
+            {
+                SendToWaypoint(waypoints[i].location);
+                waypoints[i].triggered = true;
+            }
+        }
+    }
+
     private void LateUpdate()
     {
         float currentX = transform.position.x;
         if (!Ragdoll)
         {
-            bool currentFlipped = lastX < currentX;
+            bool currentFlipped = lastX > currentX;
             if (currentFlipped != isFlipped)
             {
-                isFlipped = currentFlipped;
+                if (lastX != currentX) isFlipped = currentFlipped;
                 Flip();
             }
             transform.rotation = Quaternion.Euler(0, isFlipped ? 180 : 0, 0);
             spriteMaterial.SetInt("_SpriteFlipped", isFlipped ? 1 : 0);
         }
+        lastX = transform.position.x;
         animator.SetBool("Moving", agent.pathPending || agent.remainingDistance > agent.stoppingDistance || agent.hasPath || agent.velocity.sqrMagnitude != 0f);
     }
 
@@ -104,5 +119,14 @@ public class NPC : MonoBehaviour
         {
             StartCoroutine(ForceRagdoll(Mathf.Max((collision.relativeVelocity.magnitude - ragdollRelativeVelocity) * forceRagdollDurationMultiplier, forceRagdollMinDuration)));
         }
+    }
+
+    [System.Serializable]
+    private struct Waypoint
+    {
+        public Transform transform;
+        public float time;
+        [HideInInspector] public Vector3 location;
+        [HideInInspector] public bool triggered;
     }
 }
