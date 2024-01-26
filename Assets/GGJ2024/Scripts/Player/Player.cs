@@ -152,6 +152,7 @@ public class Player : MonoBehaviour
     {
         foreach (Rigidbody rigidbody in transform.GetComponentsInChildren<Rigidbody>())
         {
+            if (rigidbody.transform.parent == holdTransform) continue;
             if (mainRigidbody == rigidbody)
             {
                 if (!enabled) rigidbody.velocity = ragdollRootRigidbody.velocity;

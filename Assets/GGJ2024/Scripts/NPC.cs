@@ -38,6 +38,7 @@ public class NPC : MonoBehaviour
         SaveBoneZsRecursively(ragdollRootRigidbody.transform);
         for (int i = 0; i < waypoints.Length; i++) waypoints[i].location = waypoints[i].transform.position;
         lastX = transform.position.x;
+        SendToWaypoint(transform.position);
     }
 
     private void SaveBoneZsRecursively(Transform currentBone)
@@ -106,9 +107,10 @@ public class NPC : MonoBehaviour
         animator.enabled = !enabled;
     }
 
-    private IEnumerator ForceRagdoll(float duration)
+    private IEnumerator ForceRagdoll(float duration, Vector3 colliderVelocity)
     {
         Ragdoll = true;
+        foreach (Rigidbody rigidbody in ragdollRootRigidbody.GetComponentsInChildren<Rigidbody>()) rigidbody.velocity = colliderVelocity;
         yield return new WaitForSeconds(duration);
         Ragdoll = false;
     }
@@ -117,7 +119,7 @@ public class NPC : MonoBehaviour
     {
         if (collision.relativeVelocity.magnitude > ragdollRelativeVelocity && collision.gameObject.layer.ToString() != "Ground")
         {
-            StartCoroutine(ForceRagdoll(Mathf.Max((collision.relativeVelocity.magnitude - ragdollRelativeVelocity) * forceRagdollDurationMultiplier, forceRagdollMinDuration)));
+            StartCoroutine(ForceRagdoll(Mathf.Max((collision.relativeVelocity.magnitude - ragdollRelativeVelocity) * forceRagdollDurationMultiplier, forceRagdollMinDuration), collision.relativeVelocity));
         }
     }
 
