@@ -20,7 +20,7 @@ public class FollowCamera : MonoBehaviour
     private void Start()
     {
         followCamera = GetComponentInChildren<Camera>();
-        target = currentView.target;
+        if (currentView != null) target = currentView.target;
     }
 
     // Update is called once per frame

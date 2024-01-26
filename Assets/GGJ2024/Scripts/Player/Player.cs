@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
     public Transform holdTransform;
     public Rigidbody ragdollRootRigidbody;
+    public PlayerInput input;
 
     [SerializeField] float speed = 1, maxSpeed = 5, jumpForce, airControlMultiplier = 0.2f, maxSlope = Mathf.PI / 2f, ragdollBoost = 10f;
     [SerializeField] Rigidbody mainRigidbody;
@@ -16,8 +18,7 @@ public class Player : MonoBehaviour
     [SerializeField] SpriteRenderer midpointRenderer;
 
     [HideInInspector] public Material spriteMaterial, flippedSpriteMaterial, unflippedSpriteMaterial;
-    
-    PlayerInput input;
+
     Animator animator;
     float lastX = 0, baseDynamicFriction;
     bool ragdoll, hasRagdolled, isGrounded, isFlipped;
@@ -26,6 +27,7 @@ public class Player : MonoBehaviour
     Vector3 groundNormal, steepGroundNormal;
     PhysicMaterialCombine baseCombine;
     Dictionary<Transform, Vector3> bonePositions = new();
+    Vector2 walk;
 
     public bool Ragdoll
     {
@@ -51,6 +53,7 @@ public class Player : MonoBehaviour
         foreach (SpriteRenderer spriteRenderer in GetComponentsInChildren<SpriteRenderer>())
         {
             spriteRenderer.material = spriteMaterial;
+            spriteRenderer.sortingOrder = 0;
         }
         SaveBoneZsRecursively(ragdollRootRigidbody.transform);
     }
@@ -66,23 +69,28 @@ public class Player : MonoBehaviour
 
     private void BindInputs()
     {
-        input = new();
-        PlayerInput.DefaultActions actions = input.Default;
-        actions.Ragdoll.performed += (_) => Ragdoll = true;
-        actions.Ragdoll.canceled += (_) => { if (Ragdoll) Ragdoll = false; };
-        actions.Jump.performed += (_) => Jump();
-        actions.Interact.performed += (_) => Interact();
-        actions.Drop.performed += (_) => Drop();
+        //input.actions["Ragdoll"].performed += (_) => Ragdoll = true;
+        //input.actions["Ragdoll"].canceled += (_) => { if (Ragdoll) Ragdoll = false; };
     }
+
+    private void OnWalk(InputValue value)
+    {
+        walk = value.Get<Vector2>();
+    }
+
+    private void OnRagdoll(InputValue value)
+    {
+        Ragdoll = value.isPressed;
+    }
+
     private void LateUpdate()
     {
-        Vector2 inputWalk = input.Default.Walk.ReadValue<Vector2>();
-        baseCollider.material.dynamicFriction = inputWalk.magnitude > 0 ? 0 : baseDynamicFriction;
-        baseCollider.material.frictionCombine = inputWalk.magnitude > 0 ? PhysicMaterialCombine.Minimum : baseCombine;
+        baseCollider.material.dynamicFriction = walk.magnitude > 0 ? 0 : baseDynamicFriction;
+        baseCollider.material.frictionCombine = walk.magnitude > 0 ? PhysicMaterialCombine.Minimum : baseCombine;
         isGrounded = Grounded();
         hasRagdolled &= !isGrounded;
         animator.SetBool("Grounded", isGrounded);
-        inputWalk *= speed * Time.deltaTime * (isGrounded? 1 : airControlMultiplier);
+        Vector2 inputWalk = (isGrounded? 1 : airControlMultiplier) * speed * Time.deltaTime * walk;
         if (Mathf.Abs(inputWalk.x) > 0) lastX = inputWalk.x;
         animator.SetBool("Moving", inputWalk.magnitude > 0);
         if (!Ragdoll)
@@ -117,7 +125,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void Jump()
+    private void OnJump()
     {
         if (!isGrounded || Ragdoll) return;
         else
@@ -172,7 +180,30 @@ public class Player : MonoBehaviour
         if (isFlipped) Flip();
     }
 
-    private void Interact()
+    private IInteractable NearestInteractable()
+    {
+        IInteractable closestInteractable = null;
+        float nearestDistance = float.MaxValue;
+        foreach (IInteractable interactable in interactables)
+        {
+            switch (interactable)
+            {
+                case Prop prop:
+                    float interactableDistance = Vector3.Distance(prop.transform.position, holdTransform.position);
+                    if (interactableDistance < nearestDistance)
+                    {
+                        closestInteractable = interactable;
+                        nearestDistance = interactableDistance;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        return closestInteractable;
+    }
+
+    private void OnInteract()
     {
         if (nextInteractable != null) return;
         if (holdTransform.childCount > 0)
@@ -182,23 +213,7 @@ public class Player : MonoBehaviour
         }
         if (interactables != null && interactables.Count > 0)
         {
-            float nearestDistance = float.MaxValue;
-            foreach (IInteractable interactable in interactables)
-            {
-                switch (interactable)
-                {
-                    case Prop prop:
-                        float interactableDistance = Vector3.Distance(prop.transform.position, holdTransform.position);
-                        if (interactableDistance < nearestDistance)
-                        {
-                            nextInteractable = interactable;
-                            nearestDistance = interactableDistance;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
+            nextInteractable = NearestInteractable();
             if (nextInteractable is Prop) animator.SetTrigger("Grab");
             else InteractNext();
         }
@@ -210,7 +225,7 @@ public class Player : MonoBehaviour
         nextInteractable = null;
     }
 
-    private void Drop()
+    private void OnDrop()
     {
         if (holdTransform.childCount > 0)
         {
@@ -223,20 +238,25 @@ public class Player : MonoBehaviour
         }
     }
 
+    private void SetPrompts()
+    {
+        HUD.SetEPrompt(holdTransform.childCount > 0 ? "Use" : interactables.Count == 0 ? "" : NearestInteractable() is Prop ? "Pick up" : "Activate");
+    }
+
     private void OnEnable()
     {
-        input.Default.Enable();
+        //input.Default.Enable();
     }
 
     private void OnDisable()
     {
-        input?.Default.Disable();
+        //input?.Default.Disable();
     }
 
     private void OnTriggerEnter(Collider other)
     {
         IInteractable[] newInteractables = other.GetComponentsInChildren<IInteractable>();
-        if (newInteractables.Length > 0) { interactables.AddRange(newInteractables); return; }
+        if (newInteractables.Length > 0) { interactables.AddRange(newInteractables); SetPrompts(); return; }
 
         if (other.gameObject.layer == LayerMask.NameToLayer("Camera Zone"))
         {
@@ -252,7 +272,7 @@ public class Player : MonoBehaviour
         {
             interactables.RemoveAll(interactable => oldInteractables.Contains(interactable));
             interactables.TrimExcess();
-            return;
+            SetPrompts();
         }
     }
 }

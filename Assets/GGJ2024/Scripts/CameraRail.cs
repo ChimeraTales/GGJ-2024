@@ -3,12 +3,11 @@ using UnityEngine;
 public class CameraRail : MonoBehaviour
 {
     [SerializeField] bool lockY;
-
-    Player player;
+    [SerializeField] Player player;
 
     private void Start()
     {
-        player = GameManager.Player;
+        if (player == null) player = GameManager.Player;
     }
 
     // Update is called once per frame

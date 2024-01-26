@@ -10,7 +10,13 @@ public class GameManager : MonoBehaviour
     }
 
     public static FollowCamera Camera { get { return instance.cameraScript; } }
-    public static Player Player { get { return instance.player; } }
+    public static Player Player
+    {
+        get
+        {
+            return instance.player;
+        }
+    }
 
     [SerializeField] private FollowCamera cameraScript;
     [SerializeField] private Player player;
