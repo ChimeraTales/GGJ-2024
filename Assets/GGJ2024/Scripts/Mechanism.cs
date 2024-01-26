@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Mechanism : MonoBehaviour, IInteractable, IActivate
 {
+    public string interactPrompt = "Interact", shiftPrompt = "Activate";
+
     public virtual void Interact(MonoBehaviour caller)
     {
         switch (caller)

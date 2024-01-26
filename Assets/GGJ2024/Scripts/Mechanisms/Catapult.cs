@@ -45,6 +45,7 @@ public class Catapult : Mechanism
 
     private void Load(Transform transform)
     {
+        transform.GetComponent<Prop>().isHeld = false;
         transform.SetParent(loadTransform, false);
         transform.localPosition = new Vector3(0, transform.GetComponentsInChildren<Collider>(true).First(collider => !collider.isTrigger).bounds.extents.y, 0);
     }

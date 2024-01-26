@@ -1,9 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    public bool sceneCountsTime;
+
     public static float CurrentTime
     {
         get { return instance.currentTime; }
@@ -40,7 +40,7 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        currentTime += Time.deltaTime * hourMultiplier;
+        if (sceneCountsTime) currentTime += Time.deltaTime * hourMultiplier;
         if (currentTime >= endTime) End();
     }
 

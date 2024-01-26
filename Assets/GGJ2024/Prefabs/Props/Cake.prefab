@@ -9,13 +9,13 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1707090304467850000}
-  - component: {fileID: 8965507089455629594}
   - component: {fileID: 4896097475299441803}
+  - component: {fileID: 8965507089455629594}
   - component: {fileID: 3686756863926532543}
   - component: {fileID: 5748197473455575794}
   - component: {fileID: 7252364892465975643}
   m_Layer: 0
-  m_Name: Pie
+  m_Name: Cake
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -36,6 +36,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4896097475299441803
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8505877109014651236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc6f669697e7ee74d9e1e42d7517cb5d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prompt: Throw
+  isHeld: 0
+  persistentColliders: []
 --- !u!212 &8965507089455629594
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -77,29 +92,17 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -24822350, guid: 67185e47d74b0664e8be4307b53fcf40, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 2353b471f784feb45b6783eeedeaab67, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 0.64, y: 0.64}
+  m_Size: {x: 0.85333335, y: 0.85333335}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &4896097475299441803
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8505877109014651236}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc6f669697e7ee74d9e1e42d7517cb5d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!135 &3686756863926532543
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -140,10 +143,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.12886834
-  m_Height: 0.56276965
+  m_Radius: 0.22651611
+  m_Height: 0.61286855
   m_Direction: 0
-  m_Center: {x: -0.0024300814, y: 0.11999726, z: 0}
+  m_Center: {x: -0.0024300814, y: -0.05348389, z: 0}
 --- !u!54 &7252364892465975643
 Rigidbody:
   m_ObjectHideFlags: 0

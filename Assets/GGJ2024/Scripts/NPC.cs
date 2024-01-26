@@ -1,21 +1,21 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
+using static UnityEditor.Progress;
 
-public class NPC : MonoBehaviour
+public class NPC : Character
 {
+    public bool canStartle;
     [SerializeField] private Waypoint[] waypoints;
-    [SerializeField] private float ragdollRelativeVelocity = 2, forceRagdollDurationMultiplier = 0.25f, forceRagdollMinDuration = 1f;
-    [SerializeField] Rigidbody mainRigidbody, ragdollRootRigidbody;
+    [SerializeField] private float ragdollRelativeVelocity = 2, forceRagdollDurationMultiplier = 0.25f, forceRagdollMinDuration = 1f, grabDistance;
     [SerializeField] NavMeshAgent agent;
+    [SerializeField] Transform[] desiredObjects;
 
-    [HideInInspector] public Material spriteMaterial, flippedSpriteMaterial, unflippedSpriteMaterial;
-
-    private bool ragdoll, isFlipped;
-    Animator animator;
-    Dictionary<Transform, Vector3> bonePositions = new();
     float lastX = 0;
+    Vector3 currentTarget;
+    Transform desiredObject;
 
     public bool Ragdoll
     {
@@ -24,30 +24,16 @@ public class NPC : MonoBehaviour
         {
             ragdoll = value;
             SetRagdoll(ragdoll);
+            agent.isStopped = value;
         }
     }
-    void Awake()
+    protected override void Awake()
     {
-        animator = GetComponent<Animator>();
-        unflippedSpriteMaterial = GetComponentInChildren<SpriteRenderer>().material;
-        flippedSpriteMaterial = new(unflippedSpriteMaterial);
-        flippedSpriteMaterial.SetInt("_SpriteFlipped", 1);
-        spriteMaterial = new(unflippedSpriteMaterial);
-        foreach (SpriteRenderer spriteRenderer in GetComponentsInChildren<SpriteRenderer>()) spriteRenderer.material = spriteMaterial;
+        base.Awake();
         agent = GetComponent<NavMeshAgent>();
-        SaveBoneZsRecursively(ragdollRootRigidbody.transform);
         for (int i = 0; i < waypoints.Length; i++) waypoints[i].location = waypoints[i].transform.position;
         lastX = transform.position.x;
         SendToWaypoint(transform.position);
-    }
-
-    private void SaveBoneZsRecursively(Transform currentBone)
-    {
-        foreach (Transform bone in currentBone)
-        {
-            bonePositions.Add(bone, bone.localPosition);
-            SaveBoneZsRecursively(bone);
-        }
     }
 
     private void Update()
@@ -80,17 +66,10 @@ public class NPC : MonoBehaviour
         animator.SetBool("Moving", agent.pathPending || agent.remainingDistance > agent.stoppingDistance || agent.hasPath || agent.velocity.sqrMagnitude != 0f);
     }
 
-    private void Flip()
-    {
-        foreach (KeyValuePair<Transform, Vector3> kvp in bonePositions)
-        {
-            kvp.Key.localPosition = isFlipped ? Vector3.Scale(kvp.Value, new Vector3(1, 1, -1)) : kvp.Value;
-        }
-    }
-
     public void SendToWaypoint(Vector3 destination)
     {
         agent.SetDestination(destination);
+        currentTarget = destination;
     }
 
     private void SetRagdoll(bool enabled)
@@ -107,12 +86,50 @@ public class NPC : MonoBehaviour
         animator.enabled = !enabled;
     }
 
-    private IEnumerator ForceRagdoll(float duration, Vector3 colliderVelocity)
+    public IEnumerator ForceRagdoll(float duration, Vector3 colliderVelocity)
     {
         Ragdoll = true;
+        Drop();
+        desiredObject = null;
         foreach (Rigidbody rigidbody in ragdollRootRigidbody.GetComponentsInChildren<Rigidbody>()) rigidbody.velocity = colliderVelocity;
         yield return new WaitForSeconds(duration);
         Ragdoll = false;
+        GrabMostDesiredItem();
+    }
+
+    public void Grab(Transform target)
+    {
+        desiredObject = target;
+        StartCoroutine(GrabCoroutine());
+    }
+
+    private IEnumerator GrabCoroutine()
+    {
+        while (desiredObject != null)
+        {
+            if (Vector3.Distance(transform.position, desiredObject.position) < grabDistance && !Ragdoll)
+            {
+                agent.SetDestination(transform.position);
+                nextInteractable = desiredObject.GetComponent<IInteractable>();
+                animator.SetTrigger("Grab");
+                desiredObject = null;
+            }
+            else if (agent.isActiveAndEnabled) agent.SetDestination(desiredObject.position);
+            yield return null;
+        }
+        agent.SetDestination(currentTarget);
+    }
+
+    private void GrabMostDesiredItem()
+    {
+        int lowestIndex = int.MaxValue;
+        Transform desiredTransform = null;
+        foreach (Transform item in interactables.Select(interactable => interactable.transform))
+        {
+            int itemIndex = Array.IndexOf(desiredObjects, item);
+            if ((!item.GetComponent<Prop>().isHeld ||  (holdTransform.childCount > 0 && holdTransform.GetChild(0) == item)) && itemIndex < lowestIndex) { desiredTransform = item; lowestIndex = itemIndex; }
+        }
+        if (desiredTransform != null && (holdTransform.childCount == 0 || Array.IndexOf(desiredObjects, holdTransform.GetChild(0)) > lowestIndex)) { Drop(); Grab(desiredTransform); }
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -120,6 +137,27 @@ public class NPC : MonoBehaviour
         if (collision.relativeVelocity.magnitude > ragdollRelativeVelocity && collision.gameObject.layer.ToString() != "Ground")
         {
             StartCoroutine(ForceRagdoll(Mathf.Max((collision.relativeVelocity.magnitude - ragdollRelativeVelocity) * forceRagdollDurationMultiplier, forceRagdollMinDuration), collision.relativeVelocity));
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.TryGetComponent(out Prop newProp) && desiredObjects.Contains(other.transform))
+        {
+            if (!interactables.Contains(newProp))
+            {
+                interactables.Add(newProp);
+                GrabMostDesiredItem();
+            }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.transform == desiredObject) desiredObject = null;
+        if (other.TryGetComponent(out Prop newProp))
+        {
+            if (interactables.Contains(newProp)) { interactables.Remove(newProp); interactables.TrimExcess(); }
         }
     }
 

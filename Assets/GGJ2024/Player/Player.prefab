@@ -799,6 +799,14 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 3347102742825093299}
+    - targetCorrespondingSourceObject: {fileID: -8653719598885068355, guid: cfc787d929d83c44481974a0cd9623c8,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 940048436320348424}
+    - targetCorrespondingSourceObject: {fileID: -8653719598885068355, guid: cfc787d929d83c44481974a0cd9623c8,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6078055127509481582}
     - targetCorrespondingSourceObject: {fileID: 1991797798123803071, guid: cfc787d929d83c44481974a0cd9623c8,
         type: 3}
       insertIndex: -1
@@ -1230,7 +1238,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 1
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 48
   m_CollisionDetection: 0
 --- !u!144 &6786981098791427031
 CharacterJoint:
@@ -1524,7 +1532,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   holdTransform: {fileID: 2369485107168429204}
+  mainRigidbody: {fileID: 5455484734311066960}
   ragdollRootRigidbody: {fileID: 4668841793479462862}
+  spriteMaterial: {fileID: 0}
+  flippedSpriteMaterial: {fileID: 0}
+  unflippedSpriteMaterial: {fileID: 0}
   input: {fileID: 3347102742825093299}
   speed: 1000
   maxSpeed: 4
@@ -1532,16 +1544,12 @@ MonoBehaviour:
   airControlMultiplier: 0.2
   maxSlope: 45
   ragdollBoost: 10
-  mainRigidbody: {fileID: 5455484734311066960}
   groundedLayers:
     serializedVersion: 2
     m_Bits: 768
   baseCollider: {fileID: 6159052998204002601}
   jauntyRotate: 0
   midpointRenderer: {fileID: 8090726702947189941}
-  spriteMaterial: {fileID: 0}
-  flippedSpriteMaterial: {fileID: 0}
-  unflippedSpriteMaterial: {fileID: 0}
 --- !u!95 &3910145924392993515
 Animator:
   serializedVersion: 5
@@ -1585,7 +1593,7 @@ CapsuleCollider:
   m_Radius: 0.25
   m_Height: 1.4
   m_Direction: 1
-  m_Center: {x: 0, y: 0.7, z: 0}
+  m_Center: {x: -0.05, y: 0.7, z: 0}
 --- !u!54 &5455484734311066960
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1644,6 +1652,50 @@ MonoBehaviour:
   m_DefaultActionMap: Default
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!135 &940048436320348424
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4463240112467916430}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!136 &6078055127509481582
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4463240112467916430}
+  m_Material: {fileID: 13400000, guid: ed9ed777e65523f4294cfaf5ef7a049c, type: 2}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.3
+  m_Height: 1.2
+  m_Direction: 1
+  m_Center: {x: -0.05, y: 0.7, z: 0}
 --- !u!1 &6050313547296996397 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -1594174219406742754, guid: cfc787d929d83c44481974a0cd9623c8,

@@ -1,11 +1,12 @@
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class HUD : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI ePrompt;
+    [SerializeField] private TextMeshProUGUI ePrompt, shiftPrompt;
     [SerializeField] private GameObject qPrompt;
 
     public InputSprite[] inputSprites;
@@ -48,9 +49,15 @@ public class HUD : MonoBehaviour
 
     public static void SetEPrompt(string prompt)
     {
-        instance.ePrompt.transform.parent.gameObject.SetActive(!string.IsNullOrEmpty(prompt));
-        instance.qPrompt.SetActive(!string.IsNullOrEmpty(prompt) && prompt == "Use");
+        bool stringEmpty = string.IsNullOrEmpty(prompt) || prompt == "";
+        instance.ePrompt.transform.parent.gameObject.SetActive(!stringEmpty);
+        instance.qPrompt.SetActive(!stringEmpty && prompt == "Use");
         instance.ePrompt.text = prompt;
+    }
+
+    public static void SetShiftPrompt(string prompt)
+    {
+        instance.shiftPrompt.text = string.IsNullOrEmpty(prompt) ? "Ragdoll" : prompt;
     }
 
     [System.Serializable]

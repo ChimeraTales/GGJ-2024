@@ -3,10 +3,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class Player : MonoBehaviour
+public class Player : Character
 {
-    public Transform holdTransform;
-    public Rigidbody mainRigidbody, ragdollRootRigidbody;
     public PlayerInput input;
 
     [SerializeField] float speed = 1, maxSpeed = 5, jumpForce, airControlMultiplier = 0.2f, maxSlope = Mathf.PI / 2f, ragdollBoost = 10f;
@@ -16,16 +14,10 @@ public class Player : MonoBehaviour
     [SerializeField] bool jauntyRotate;
     [SerializeField] SpriteRenderer midpointRenderer;
 
-    [HideInInspector] public Material spriteMaterial, flippedSpriteMaterial, unflippedSpriteMaterial;
-
-    Animator animator;
     float lastX = 0, baseDynamicFriction;
-    bool ragdoll, hasRagdolled, isGrounded, isFlipped, ragdollLocked;
-    List<IInteractable> interactables = new();
-    IInteractable nextInteractable = null;
+    bool hasRagdolled, isGrounded, ragdollLocked;
     Vector3 groundNormal, steepGroundNormal;
     PhysicMaterialCombine baseCombine;
-    Dictionary<Transform, Vector3> bonePositions = new();
     Vector2 walk;
 
     public bool Ragdoll
@@ -48,31 +40,20 @@ public class Player : MonoBehaviour
         }
     }
 
-    void Awake()
+    public Transform FocusPoint
     {
-        animator = GetComponent<Animator>();
+        get
+        {
+            return Ragdoll ? ragdollRootRigidbody.transform : transform;
+        }
+    }
+
+    protected override void Awake()
+    {
+        base.Awake();
         baseCollider = mainRigidbody.GetComponent<Collider>();
         baseDynamicFriction = baseCollider.material.dynamicFriction;
         baseCombine = baseCollider.material.frictionCombine;
-        unflippedSpriteMaterial = GetComponentInChildren<SpriteRenderer>().material;
-        flippedSpriteMaterial = new(unflippedSpriteMaterial);
-        flippedSpriteMaterial.SetInt("_SpriteFlipped", 1);
-        spriteMaterial = new(unflippedSpriteMaterial);
-        foreach (SpriteRenderer spriteRenderer in GetComponentsInChildren<SpriteRenderer>())
-        {
-            spriteRenderer.material = spriteMaterial;
-            spriteRenderer.sortingOrder = 0;
-        }
-        SaveBoneZsRecursively(ragdollRootRigidbody.transform);
-    }
-
-    private void SaveBoneZsRecursively(Transform currentBone)
-    {
-        foreach (Transform bone in currentBone)
-        {
-            bonePositions.Add(bone, bone.localPosition);
-            SaveBoneZsRecursively(bone);
-        }
     }
 
     private void OnWalk(InputValue value)
@@ -117,14 +98,6 @@ public class Player : MonoBehaviour
         else moveVector = Vector3.Scale(moveVector, new Vector3(1, 1, 1));
         (Ragdoll? ragdollRootRigidbody : mainRigidbody).AddForce(moveVector, ForceMode.Acceleration);
         if (new Vector3(mainRigidbody.velocity.x, 0, mainRigidbody.velocity.z).magnitude > maxSpeed) mainRigidbody.velocity = new Vector3(mainRigidbody.velocity.x, 0, mainRigidbody.velocity.z).normalized * maxSpeed + Vector3.up * mainRigidbody.velocity.y;
-    }
-
-    private void Flip()
-    {
-        foreach (KeyValuePair<Transform, Vector3> kvp in bonePositions)
-        {
-            kvp.Key.localPosition = isFlipped ? Vector3.Scale(kvp.Value, new Vector3(1, 1, -1)) : kvp.Value;
-        }
     }
 
     private void OnJump()
@@ -174,7 +147,6 @@ public class Player : MonoBehaviour
             rigidbody.angularVelocity = Vector3.zero;
         }
         if (!enabled) mainRigidbody.transform.position = ragdollRootRigidbody.transform.position;
-        else if (GameManager.Camera.CurrentView.target == transform) GameManager.Camera.target = ragdollRootRigidbody.transform;
         animator.enabled = !enabled;
         if (!hasRagdolled)
         {
@@ -183,7 +155,6 @@ public class Player : MonoBehaviour
             if (nearestMechanism != null) nearestMechanism.Activate();
         }
         if (enabled) hasRagdolled = true;
-        else GameManager.Camera.target = GameManager.Camera.CurrentView.target;
         if (isFlipped) Flip();
     }
 
@@ -193,6 +164,7 @@ public class Player : MonoBehaviour
         float nearestDistance = float.MaxValue;
         foreach (IInteractable interactable in checkedInteractables ?? interactables)
         {
+            if (interactable is Prop && (interactable as Prop).isHeld) continue;
             float interactableDistance = Vector3.Distance(interactable.transform.position, holdTransform.position);
             if (interactableDistance < nearestDistance)
             {
@@ -203,6 +175,11 @@ public class Player : MonoBehaviour
         return closestInteractable;
     }
 
+    private bool InteractableAvailable()
+    {
+        return interactables != null && interactables.Where(interactable => interactable is not Prop || !(interactable as Prop).isHeld).ToList().Count > 0;
+    }
+
     private void OnInteract()
     {
         if (nextInteractable != null) return;
@@ -211,50 +188,35 @@ public class Player : MonoBehaviour
         {
             if (nearestMechanism != null) { foreach (SpriteRenderer spriteRenderer in holdTransform.GetChild(0).GetComponentsInChildren<SpriteRenderer>()) spriteRenderer.material = unflippedSpriteMaterial; nearestMechanism.Interact(this); }
             else (holdTransform.GetChild(0).GetComponent<IInteractable>() as Prop).Activate();
-            SetPrompts();
             return;
         }
-        if (interactables != null && interactables.Count > 0)
+        if (InteractableAvailable())
         {
             nextInteractable = NearestInteractable();
             if (nextInteractable is Prop) animator.SetTrigger("Grab");
             else InteractNext();
         }
-    }
-
-    private void InteractNext()
-    {
-        nextInteractable?.Interact(this);
-        nextInteractable = null;
+        SetPrompts();
     }
 
     private void OnDrop()
     {
-        if (holdTransform.childCount > 0)
-        {
-            Transform heldTransform = holdTransform.GetChild(0);
-            heldTransform.SetParent(null);
-            foreach (Collider collider in heldTransform.GetComponentsInChildren<Collider>(true)) if (!collider.isTrigger) collider.enabled = true;
-            heldTransform.GetComponent<Rigidbody>().isKinematic = false;
-            foreach (SpriteRenderer spriteRenderer in heldTransform.GetComponentsInChildren<SpriteRenderer>()) spriteRenderer.material = isFlipped? flippedSpriteMaterial : unflippedSpriteMaterial;
-
-        }
-    }
-
-    public void Teleport(Vector3 destination, bool freeze = false)
-    {
-        mainRigidbody.transform.position = destination;
-        ragdollRootRigidbody.transform.position = destination;
-        if (freeze)
-        {
-            ragdollRootRigidbody.velocity = Vector3.zero;
-            mainRigidbody.velocity = Vector3.zero;
-        }
+        Drop();
+        SetPrompts();
     }
 
     private void SetPrompts()
     {
-        HUD.SetEPrompt(holdTransform.childCount > 0 ? "Use" : interactables.Count == 0 ? "" : NearestInteractable() is Prop ? "Pick up" : "Activate");
+        string ePrompt = "";
+        if (holdTransform.childCount > 0) ePrompt = holdTransform.GetChild(0).GetComponent<Prop>().prompt;
+        IInteractable nearestInteractable = NearestInteractable();
+        if (string.IsNullOrEmpty(ePrompt))
+        {
+            if (nearestInteractable is Prop) ePrompt = "Pick Up";
+            else if (nearestInteractable is Mechanism) ePrompt = (nearestInteractable as Mechanism).interactPrompt;
+        }
+        HUD.SetEPrompt(ePrompt);
+        HUD.SetShiftPrompt(nearestInteractable is Mechanism ? (nearestInteractable as Mechanism).shiftPrompt : "");
     }
 
     private void OnTriggerEnter(Collider other)
