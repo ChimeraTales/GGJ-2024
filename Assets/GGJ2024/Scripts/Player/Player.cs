@@ -6,11 +6,10 @@ using UnityEngine.InputSystem;
 public class Player : MonoBehaviour
 {
     public Transform holdTransform;
-    public Rigidbody ragdollRootRigidbody;
+    public Rigidbody mainRigidbody, ragdollRootRigidbody;
     public PlayerInput input;
 
     [SerializeField] float speed = 1, maxSpeed = 5, jumpForce, airControlMultiplier = 0.2f, maxSlope = Mathf.PI / 2f, ragdollBoost = 10f;
-    [SerializeField] Rigidbody mainRigidbody;
     [SerializeField] LayerMask groundedLayers;
     [SerializeField] readonly LayerMask cameraZoneLayers;
     [SerializeField] Collider baseCollider;
@@ -21,7 +20,7 @@ public class Player : MonoBehaviour
 
     Animator animator;
     float lastX = 0, baseDynamicFriction;
-    bool ragdoll, hasRagdolled, isGrounded, isFlipped;
+    bool ragdoll, hasRagdolled, isGrounded, isFlipped, ragdollLocked;
     List<IInteractable> interactables = new();
     IInteractable nextInteractable = null;
     Vector3 groundNormal, steepGroundNormal;
@@ -35,13 +34,22 @@ public class Player : MonoBehaviour
         set
         {
             ragdoll = value;
-            SetRagdoll(ragdoll);
+            if (!ragdollLocked) SetRagdoll(ragdoll);
+        }
+    }
+
+    public bool RagdollLocked
+    {
+        get { return ragdollLocked; }
+        set
+        {
+            ragdollLocked = value;
+            if (!value) SetRagdoll(ragdoll);
         }
     }
 
     void Awake()
     {
-        BindInputs();
         animator = GetComponent<Animator>();
         baseCollider = mainRigidbody.GetComponent<Collider>();
         baseDynamicFriction = baseCollider.material.dynamicFriction;
@@ -67,12 +75,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void BindInputs()
-    {
-        //input.actions["Ragdoll"].performed += (_) => Ragdoll = true;
-        //input.actions["Ragdoll"].canceled += (_) => { if (Ragdoll) Ragdoll = false; };
-    }
-
     private void OnWalk(InputValue value)
     {
         walk = value.Get<Vector2>();
@@ -88,7 +90,7 @@ public class Player : MonoBehaviour
         baseCollider.material.dynamicFriction = walk.magnitude > 0 ? 0 : baseDynamicFriction;
         baseCollider.material.frictionCombine = walk.magnitude > 0 ? PhysicMaterialCombine.Minimum : baseCombine;
         isGrounded = Grounded();
-        hasRagdolled &= !isGrounded;
+        if (!ragdollLocked) hasRagdolled &= !isGrounded;
         animator.SetBool("Grounded", isGrounded);
         Vector2 inputWalk = (isGrounded? 1 : airControlMultiplier) * speed * Time.deltaTime * walk;
         if (Mathf.Abs(inputWalk.x) > 0) lastX = inputWalk.x;
@@ -174,30 +176,28 @@ public class Player : MonoBehaviour
         if (!enabled) mainRigidbody.transform.position = ragdollRootRigidbody.transform.position;
         else if (GameManager.Camera.CurrentView.target == transform) GameManager.Camera.target = ragdollRootRigidbody.transform;
         animator.enabled = !enabled;
-        if (!hasRagdolled) ragdollRootRigidbody.AddForce(mainRigidbody.velocity.normalized * ragdollBoost, ForceMode.Impulse);
+        if (!hasRagdolled)
+        {
+            ragdollRootRigidbody.AddForce(mainRigidbody.velocity.normalized * ragdollBoost, ForceMode.Impulse);
+            Mechanism nearestMechanism = NearestInteractable(interactables.Where(interactable => interactable.GetType().IsSubclassOf(typeof(Mechanism))).ToList()) as Mechanism;
+            if (nearestMechanism != null) nearestMechanism.Activate();
+        }
         if (enabled) hasRagdolled = true;
         else GameManager.Camera.target = GameManager.Camera.CurrentView.target;
         if (isFlipped) Flip();
     }
 
-    private IInteractable NearestInteractable()
+    private IInteractable NearestInteractable(List<IInteractable> checkedInteractables = null)
     {
         IInteractable closestInteractable = null;
         float nearestDistance = float.MaxValue;
-        foreach (IInteractable interactable in interactables)
+        foreach (IInteractable interactable in checkedInteractables ?? interactables)
         {
-            switch (interactable)
+            float interactableDistance = Vector3.Distance(interactable.transform.position, holdTransform.position);
+            if (interactableDistance < nearestDistance)
             {
-                case Prop prop:
-                    float interactableDistance = Vector3.Distance(prop.transform.position, holdTransform.position);
-                    if (interactableDistance < nearestDistance)
-                    {
-                        closestInteractable = interactable;
-                        nearestDistance = interactableDistance;
-                    }
-                    break;
-                default:
-                    break;
+                closestInteractable = interactable;
+                nearestDistance = interactableDistance;
             }
         }
         return closestInteractable;
@@ -206,9 +206,12 @@ public class Player : MonoBehaviour
     private void OnInteract()
     {
         if (nextInteractable != null) return;
+        Mechanism nearestMechanism = NearestInteractable(interactables.Where(interactable => interactable.GetType().IsSubclassOf(typeof(Mechanism))).ToList()) as Mechanism;
         if (holdTransform.childCount > 0)
         {
-            (holdTransform.GetChild(0).GetComponent<IInteractable>() as Prop).Activate();
+            if (nearestMechanism != null) { foreach (SpriteRenderer spriteRenderer in holdTransform.GetChild(0).GetComponentsInChildren<SpriteRenderer>()) spriteRenderer.material = unflippedSpriteMaterial; nearestMechanism.Interact(this); }
+            else (holdTransform.GetChild(0).GetComponent<IInteractable>() as Prop).Activate();
+            SetPrompts();
             return;
         }
         if (interactables != null && interactables.Count > 0)
@@ -238,19 +241,20 @@ public class Player : MonoBehaviour
         }
     }
 
+    public void Teleport(Vector3 destination, bool freeze = false)
+    {
+        mainRigidbody.transform.position = destination;
+        ragdollRootRigidbody.transform.position = destination;
+        if (freeze)
+        {
+            ragdollRootRigidbody.velocity = Vector3.zero;
+            mainRigidbody.velocity = Vector3.zero;
+        }
+    }
+
     private void SetPrompts()
     {
         HUD.SetEPrompt(holdTransform.childCount > 0 ? "Use" : interactables.Count == 0 ? "" : NearestInteractable() is Prop ? "Pick up" : "Activate");
-    }
-
-    private void OnEnable()
-    {
-        //input.Default.Enable();
-    }
-
-    private void OnDisable()
-    {
-        //input?.Default.Disable();
     }
 
     private void OnTriggerEnter(Collider other)

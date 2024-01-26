@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class CameraRail : MonoBehaviour
 {
-    [SerializeField] bool lockY;
+    [SerializeField] bool lockY, lockX;
     [SerializeField] Player player;
 
     private void Start()
@@ -14,6 +14,6 @@ public class CameraRail : MonoBehaviour
     void LateUpdate()
     {
         Transform current = player.Ragdoll ? player.ragdollRootRigidbody.transform : player.transform;
-        transform.position = new Vector3(current.position.x, lockY ? transform.position.y : current.position.y, transform.position.z);
+        transform.position = new Vector3(lockX? transform.position.x : current.position.x, lockY ? transform.position.y : current.position.y, transform.position.z);
     }
 }
