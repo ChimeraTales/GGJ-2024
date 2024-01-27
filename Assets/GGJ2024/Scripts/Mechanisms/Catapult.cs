@@ -68,7 +68,6 @@ public class Catapult : Mechanism
             {
                 rigidbody.AddForce((targetTransform.position - loadTransform.position) * launchForce, ForceMode.Impulse);
             }
-            rigidbodies.Add(player.ragdollRootRigidbody);
         }
         else shooting = false;
         StartCoroutine(Teleport(rigidbodies.ToArray()));
@@ -81,7 +80,7 @@ public class Catapult : Mechanism
         {
             if (rigidbody != null)
             {
-                if (player == null || rigidbody != player.ragdollRootRigidbody)
+                if (player == null)
                 {
                     rigidbody.velocity = Vector3.zero;
                     rigidbody.transform.localRotation = Quaternion.identity;

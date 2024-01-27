@@ -51,6 +51,9 @@ MonoBehaviour:
   prompt: Throw
   isHeld: 0
   persistentColliders: []
+  throwForce: {x: 5, y: 5, z: 0}
+  throwOffset: 0
+  throwIsHeldDelay: 2
 --- !u!212 &8965507089455629594
 SpriteRenderer:
   m_ObjectHideFlags: 0

@@ -7,9 +7,9 @@ public class Character : MonoBehaviour
     public Rigidbody mainRigidbody, ragdollRootRigidbody;
 
     [HideInInspector] public Material spriteMaterial, flippedSpriteMaterial, unflippedSpriteMaterial;
+    [HideInInspector] public Animator animator;
 
     protected bool isFlipped, ragdoll;
-    protected Animator animator;
     protected Dictionary<Transform, Vector3> bonePositions = new();
     protected List<IInteractable> interactables = new();
     protected IInteractable nextInteractable = null;

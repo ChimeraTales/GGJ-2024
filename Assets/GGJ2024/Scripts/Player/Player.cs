@@ -7,6 +7,8 @@ public class Player : Character
 {
     public PlayerInput input;
 
+    [HideInInspector] public Prop thrownProp;
+
     [SerializeField] float speed = 1, maxSpeed = 5, jumpForce, airControlMultiplier = 0.2f, maxSlope = Mathf.PI / 2f, ragdollBoost = 10f;
     [SerializeField] LayerMask groundedLayers;
     [SerializeField] readonly LayerMask cameraZoneLayers;
@@ -214,6 +216,12 @@ public class Player : Character
     {
         base.InteractNext();
         SetPrompts();
+    }
+
+    public void TriggerThrow()
+    {
+        thrownProp.Throw(transform);
+        thrownProp = null;
     }
 
     private void OnDrop()
