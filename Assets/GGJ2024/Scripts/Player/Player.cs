@@ -138,17 +138,17 @@ public class Player : Character
             if (rigidbody.transform.parent == holdTransform) continue;
             if (mainRigidbody == rigidbody)
             {
-                if (!enabled) rigidbody.velocity = ragdollRootRigidbody.velocity;
+                if (!enabled)
+                {
+                    rigidbody.velocity = ragdollRootRigidbody.velocity;
+                    rigidbody.transform.position = GroundPoint(ragdollRootRigidbody.transform.position);
+                }
                 continue;
             }
             rigidbody.isKinematic = !enabled;
             if (!enabled) continue;
             rigidbody.velocity = enabled? mainRigidbody.velocity : Vector3.zero;
             rigidbody.angularVelocity = Vector3.zero;
-        }
-        if (!enabled)
-        {
-            mainRigidbody.transform.position = GroundPoint(ragdollRootRigidbody.transform.position);
         }
         mainRigidbody.GetComponent<CapsuleCollider>().enabled = !enabled;
         mainRigidbody.useGravity = !enabled;
@@ -166,7 +166,7 @@ public class Player : Character
     private Vector3 GroundPoint(Vector3 point)
     {
         if (Physics.Raycast(point + Vector3.up * 0.5f, Vector3.down, out RaycastHit hit, 1f, groundedLayers)) return hit.point;
-        else return point;
+        else return point + Vector3.down * 0.5f;
     }
 
     private IInteractable NearestInteractable(List<IInteractable> checkedInteractables = null)
