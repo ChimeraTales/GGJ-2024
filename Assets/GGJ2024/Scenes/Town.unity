@@ -20,13 +20,13 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientSkyColor: {r: 0.441, g: 0.4736667, b: 0.53900003, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 0
+  m_AmbientMode: 3
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 7a40b7b6e1444074996554b827d75cb8, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -37,8 +37,8 @@ RenderSettings:
   m_ReflectionBounces: 1
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
-  m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_Sun: {fileID: 1240008132}
+  m_IndirectSpecularColor: {r: 0.35562697, g: 0.707324, b: 0.6140809, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1402,7 +1402,7 @@ PrefabInstance:
     - target: {fileID: 7899284612866045486, guid: b0f7fcd09cf739e4ab807698bbad3323,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 48
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7899284612866045486, guid: b0f7fcd09cf739e4ab807698bbad3323,
         type: 3}
@@ -2096,7 +2096,7 @@ PrefabInstance:
     - target: {fileID: 7899284612866045486, guid: b0f7fcd09cf739e4ab807698bbad3323,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 32
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7899284612866045486, guid: b0f7fcd09cf739e4ab807698bbad3323,
         type: 3}
@@ -3234,6 +3234,37 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 578171752}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &675534602
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 675534603}
+  m_Layer: 0
+  m_Name: Destination
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &675534603
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 675534602}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.239, y: 6.167, z: -2.299}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1441054267}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &680407333
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7071,6 +7102,76 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1294755689}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1441054264
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1441054267}
+  - component: {fileID: 1441054266}
+  - component: {fileID: 1441054265}
+  m_Layer: 13
+  m_Name: TelepoprtVolume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1441054265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1441054264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36438f61b60a55c4097584aacbf28fc9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportPlayer: 1
+  teleportNPCs: 0
+  destination: {fileID: 675534603}
+--- !u!65 &1441054266
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1441054264}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!4 &1441054267
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1441054264}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -7.85, y: 0.82, z: -2.26}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 675534603}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1464260245
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8168,7 +8269,7 @@ GameObject:
   - component: {fileID: 1698078028}
   m_Layer: 0
   m_Name: NPCs
-  m_TagString: Untagged
+  m_TagString: NPC
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -8907,7 +9008,7 @@ PrefabInstance:
     - target: {fileID: 7899284612866045486, guid: b0f7fcd09cf739e4ab807698bbad3323,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 16
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7899284612866045486, guid: b0f7fcd09cf739e4ab807698bbad3323,
         type: 3}
@@ -9153,7 +9254,7 @@ PrefabInstance:
     - target: {fileID: 7899284612866045486, guid: b0f7fcd09cf739e4ab807698bbad3323,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 16
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7899284612866045486, guid: b0f7fcd09cf739e4ab807698bbad3323,
         type: 3}
@@ -9496,3 +9597,4 @@ SceneRoots:
   - {fileID: 5113468348086213887}
   - {fileID: 335887090}
   - {fileID: 1485184520}
+  - {fileID: 1441054267}

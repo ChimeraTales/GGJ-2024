@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 5501438305416289083}
   m_Layer: 7
   m_Name: NPC
-  m_TagString: Untagged
+  m_TagString: NPC
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -57,6 +57,7 @@ MonoBehaviour:
   spriteMaterial: {fileID: 0}
   flippedSpriteMaterial: {fileID: 0}
   unflippedSpriteMaterial: {fileID: 0}
+  animator: {fileID: 0}
   canStartle: 1
   waypoints: []
   ragdollRelativeVelocity: 4

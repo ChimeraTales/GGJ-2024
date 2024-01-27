@@ -10,7 +10,7 @@ public class Catapult : Mechanism
 
     private Animator animator;
     private Player player;
-    private bool shooting;
+    private bool shooting, playerShot;
 
     private void Awake()
     {
@@ -68,8 +68,9 @@ public class Catapult : Mechanism
             {
                 rigidbody.AddForce((targetTransform.position - loadTransform.position) * launchForce, ForceMode.Impulse);
             }
+            playerShot = true;
         }
-        else shooting = false;
+        else { shooting = false; playerShot = false; }
         StartCoroutine(Teleport(rigidbodies.ToArray()));
     }
 
@@ -80,20 +81,17 @@ public class Catapult : Mechanism
         {
             if (rigidbody != null)
             {
-                if (player == null)
-                {
-                    rigidbody.velocity = Vector3.zero;
-                    rigidbody.transform.localRotation = Quaternion.identity;
-                    rigidbody.position = destinationTransform.position;
-                    foreach (Collider collider in rigidbody.GetComponentsInChildren<Collider>()) collider.enabled = true;
-                }
-                if (player != null)
-                {
-                    player.Teleport(destinationTransform.position, true);
-                    player.RagdollLocked = false;
-                    shooting = false;
-                }
+                rigidbody.velocity = Vector3.zero;
+                rigidbody.transform.localRotation = Quaternion.identity;
+                rigidbody.position = destinationTransform.position;
+                foreach (Collider collider in rigidbody.GetComponentsInChildren<Collider>()) collider.enabled = true;
             }
+        }
+        if (playerShot && player != null)
+        {
+            player.Teleport(destinationTransform.position, true);
+            player.RagdollLocked = false;
+            shooting = false;
         }
     }
 
