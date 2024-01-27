@@ -25,8 +25,8 @@ public class Player : Character
         get { return ragdoll; }
         set
         {
+            if (!ragdollLocked && !value == ragdoll) SetRagdoll(value);
             ragdoll = value;
-            if (!ragdollLocked) SetRagdoll(ragdoll);
         }
     }
 
@@ -133,6 +133,7 @@ public class Player : Character
 
     private void SetRagdoll(bool enabled)
     {
+        Vector3 currentVelocity = enabled? mainRigidbody.velocity : ragdollRootRigidbody.velocity;
         foreach (Rigidbody rigidbody in transform.GetComponentsInChildren<Rigidbody>())
         {
             if (rigidbody.transform.parent == holdTransform) continue;
@@ -140,14 +141,14 @@ public class Player : Character
             {
                 if (!enabled)
                 {
-                    rigidbody.velocity = ragdollRootRigidbody.velocity;
+                    rigidbody.velocity = currentVelocity;
                     rigidbody.transform.position = GroundPoint(ragdollRootRigidbody.transform.position);
                 }
                 continue;
             }
             rigidbody.isKinematic = !enabled;
+            rigidbody.velocity = enabled? currentVelocity : Vector3.zero;
             if (!enabled) continue;
-            rigidbody.velocity = enabled? mainRigidbody.velocity : Vector3.zero;
             rigidbody.angularVelocity = Vector3.zero;
         }
         mainRigidbody.GetComponent<CapsuleCollider>().enabled = !enabled;
