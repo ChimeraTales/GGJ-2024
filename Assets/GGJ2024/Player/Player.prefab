@@ -1542,7 +1542,7 @@ MonoBehaviour:
   maxSpeed: 4
   jumpForce: 5
   airControlMultiplier: 0.2
-  maxSlope: 45
+  maxSlope: 50
   ragdollBoost: 10
   groundedLayers:
     serializedVersion: 2

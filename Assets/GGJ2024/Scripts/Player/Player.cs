@@ -148,7 +148,7 @@ public class Player : Character
         }
         if (!enabled)
         {
-            mainRigidbody.transform.position = ragdollRootRigidbody.transform.position;
+            mainRigidbody.transform.position = GroundPoint(ragdollRootRigidbody.transform.position);
         }
         mainRigidbody.GetComponent<CapsuleCollider>().enabled = !enabled;
         mainRigidbody.useGravity = !enabled;
@@ -161,6 +161,12 @@ public class Player : Character
         }
         if (enabled) hasRagdolled = true;
         if (isFlipped) Flip();
+    }
+
+    private Vector3 GroundPoint(Vector3 point)
+    {
+        if (Physics.Raycast(point + Vector3.up * 0.5f, Vector3.down, out RaycastHit hit, 1f, groundedLayers)) return hit.point;
+        else return point;
     }
 
     private IInteractable NearestInteractable(List<IInteractable> checkedInteractables = null)
@@ -203,7 +209,7 @@ public class Player : Character
         }
     }
 
-    protected override void InteractNext()
+    public override void InteractNext()
     {
         base.InteractNext();
         SetPrompts();

@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class Character : MonoBehaviour
@@ -18,7 +16,7 @@ public class Character : MonoBehaviour
 
     protected virtual void Awake()
     {
-        animator = GetComponent<Animator>();
+        animator = GetComponentInChildren<Animator>();
         SaveBoneZsRecursively(ragdollRootRigidbody.transform);
         unflippedSpriteMaterial = GetComponentInChildren<SpriteRenderer>().material;
         flippedSpriteMaterial = new(unflippedSpriteMaterial);
@@ -59,7 +57,7 @@ public class Character : MonoBehaviour
         }
     }
 
-    protected virtual void InteractNext()
+    public virtual void InteractNext()
     {
         nextInteractable?.Interact(this);
         nextInteractable = null;

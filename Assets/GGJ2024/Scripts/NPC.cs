@@ -78,7 +78,12 @@ public class NPC : Character
         foreach (Rigidbody rigidbody in transform.GetComponentsInChildren<Rigidbody>())
         {
             if (rigidbody.transform.parent == holdTransform) continue;
-            if (mainRigidbody == rigidbody) continue;
+            if (mainRigidbody == rigidbody)
+            {
+                rigidbody.useGravity = !enabled;
+                rigidbody.GetComponent<CapsuleCollider>().enabled = !enabled;
+                continue;
+            }
             rigidbody.isKinematic = !enabled;
             if (!enabled) continue;
             rigidbody.velocity = enabled ? mainRigidbody.velocity : Vector3.zero;
@@ -96,7 +101,7 @@ public class NPC : Character
             Drop();
             desiredObject = null;
         }
-        foreach (Rigidbody rigidbody in ragdollRootRigidbody.GetComponentsInChildren<Rigidbody>()) rigidbody.velocity = colliderVelocity;
+        foreach (Rigidbody rigidbody in ragdollRootRigidbody.GetComponentsInChildren<Rigidbody>().Where(rigidbody => !rigidbody.isKinematic)) rigidbody.velocity = colliderVelocity;
         yield return new WaitForSeconds(duration);
         Ragdoll = false;
         GrabMostDesiredItem();
@@ -139,7 +144,7 @@ public class NPC : Character
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.relativeVelocity.magnitude > ragdollRelativeVelocity && collision.gameObject.layer.ToString() != "Ground")
+        if (!Ragdoll && collision.relativeVelocity.magnitude > ragdollRelativeVelocity && collision.gameObject.layer.ToString() != "Ground")
         {
             StartCoroutine(ForceRagdoll(Mathf.Max((collision.relativeVelocity.magnitude - ragdollRelativeVelocity) * forceRagdollDurationMultiplier, forceRagdollMinDuration), collision.relativeVelocity));
         }
