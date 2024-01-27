@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -42,6 +43,12 @@ public class GameManager : MonoBehaviour
     {
         if (sceneCountsTime) currentTime += Time.deltaTime * hourMultiplier;
         if (currentTime >= endTime) End();
+    }
+
+    public void Restart()
+    {
+        Time.timeScale = 1;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     void End()

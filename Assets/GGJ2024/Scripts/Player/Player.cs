@@ -146,7 +146,12 @@ public class Player : Character
             rigidbody.velocity = enabled? mainRigidbody.velocity : Vector3.zero;
             rigidbody.angularVelocity = Vector3.zero;
         }
-        if (!enabled) mainRigidbody.transform.position = ragdollRootRigidbody.transform.position;
+        if (!enabled)
+        {
+            mainRigidbody.transform.position = ragdollRootRigidbody.transform.position;
+        }
+        mainRigidbody.GetComponent<CapsuleCollider>().enabled = !enabled;
+        mainRigidbody.useGravity = !enabled;
         animator.enabled = !enabled;
         if (!hasRagdolled)
         {
@@ -196,6 +201,11 @@ public class Player : Character
             if (nextInteractable is Prop) animator.SetTrigger("Grab");
             else InteractNext();
         }
+    }
+
+    protected override void InteractNext()
+    {
+        base.InteractNext();
         SetPrompts();
     }
 
@@ -213,10 +223,15 @@ public class Player : Character
         if (string.IsNullOrEmpty(ePrompt))
         {
             if (nearestInteractable is Prop) ePrompt = "Pick Up";
-            else if (nearestInteractable is Mechanism) ePrompt = (nearestInteractable as Mechanism).interactPrompt;
         }
+        if (nearestInteractable is Mechanism) ePrompt = (nearestInteractable as Mechanism).interactPrompt;
         HUD.SetEPrompt(ePrompt);
         HUD.SetShiftPrompt(nearestInteractable is Mechanism ? (nearestInteractable as Mechanism).shiftPrompt : "");
+    }
+
+    private void OnMenu()
+    {
+        HUD.TogglePause();
     }
 
     private void OnTriggerEnter(Collider other)

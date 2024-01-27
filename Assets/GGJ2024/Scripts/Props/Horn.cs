@@ -22,7 +22,7 @@ public class Horn : Prop
     public override void Activate()
     {
         animationComponent.Play();
-        foreach (NPC npc in currentNPCs) StartCoroutine(npc.ForceRagdoll(ragdollDuration, Vector3.up * ragdollForce));
+        foreach (NPC npc in currentNPCs) StartCoroutine(npc.ForceRagdoll(ragdollDuration, Vector3.up * ragdollForce, true));
     }
 
     private void PlaySound()

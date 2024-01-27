@@ -1,13 +1,14 @@
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class HUD : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI ePrompt, shiftPrompt;
-    [SerializeField] private GameObject qPrompt;
+    [SerializeField] private GameObject qPrompt, pauseMenu, restartButton;
 
     public InputSprite[] inputSprites;
 
@@ -51,13 +52,21 @@ public class HUD : MonoBehaviour
     {
         bool stringEmpty = string.IsNullOrEmpty(prompt) || prompt == "";
         instance.ePrompt.transform.parent.gameObject.SetActive(!stringEmpty);
-        instance.qPrompt.SetActive(!stringEmpty && prompt == "Use");
+        instance.qPrompt.SetActive(!stringEmpty);
         instance.ePrompt.text = prompt;
     }
 
     public static void SetShiftPrompt(string prompt)
     {
         instance.shiftPrompt.text = string.IsNullOrEmpty(prompt) ? "Ragdoll" : prompt;
+    }
+
+    public static void TogglePause()
+    {
+        bool currentlyActive = instance.pauseMenu.activeInHierarchy;
+        Time.timeScale = currentlyActive ? 1 : 0;
+        instance.pauseMenu.SetActive(!currentlyActive);
+        EventSystem.current.SetSelectedGameObject(instance.restartButton, new BaseEventData(EventSystem.current));
     }
 
     [System.Serializable]

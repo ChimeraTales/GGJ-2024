@@ -74,8 +74,10 @@ public class NPC : Character
 
     private void SetRagdoll(bool enabled)
     {
+
         foreach (Rigidbody rigidbody in transform.GetComponentsInChildren<Rigidbody>())
         {
+            if (rigidbody.transform.parent == holdTransform) continue;
             if (mainRigidbody == rigidbody) continue;
             rigidbody.isKinematic = !enabled;
             if (!enabled) continue;
@@ -86,11 +88,14 @@ public class NPC : Character
         animator.enabled = !enabled;
     }
 
-    public IEnumerator ForceRagdoll(float duration, Vector3 colliderVelocity)
+    public IEnumerator ForceRagdoll(float duration, Vector3 colliderVelocity, bool forceDrop = false)
     {
         Ragdoll = true;
-        Drop();
-        desiredObject = null;
+        if (forceDrop)
+        {
+            Drop();
+            desiredObject = null;
+        }
         foreach (Rigidbody rigidbody in ragdollRootRigidbody.GetComponentsInChildren<Rigidbody>()) rigidbody.velocity = colliderVelocity;
         yield return new WaitForSeconds(duration);
         Ragdoll = false;

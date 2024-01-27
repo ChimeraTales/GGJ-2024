@@ -59,7 +59,7 @@ public class Character : MonoBehaviour
         }
     }
 
-    protected void InteractNext()
+    protected virtual void InteractNext()
     {
         nextInteractable?.Interact(this);
         nextInteractable = null;

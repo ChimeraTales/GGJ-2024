@@ -17,19 +17,13 @@ public abstract class Prop : MonoBehaviour, IInteractable
                 if (player.holdTransform != null)
                 {
                     GetComponent<Rigidbody>().isKinematic = true;
-                    foreach (Collider collider in GetComponentsInChildren<Collider>()) if (!collider.isTrigger) collider.enabled = false;
                     transform.SetParent(player.holdTransform);
-                    transform.localPosition = Vector3.zero;
-                    transform.localRotation = Quaternion.identity;
+                    transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
                     foreach (SpriteRenderer renderer in GetComponentsInChildren<SpriteRenderer>())
                     {
                         renderer.material = player.spriteMaterial;
                     }
                     isHeld = true;
-                    foreach (Collider collider in GetComponentsInChildren<Collider>().Where(collider => collider.isTrigger && !persistentColliders.Contains(collider)))
-                    {
-                        collider.enabled = false;
-                    }
                 }
                 break;
             default:
