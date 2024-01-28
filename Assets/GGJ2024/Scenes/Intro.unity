@@ -6104,7 +6104,7 @@ MonoBehaviour:
   - {fileID: 1846527662}
   - {fileID: 336165886}
   particles: {fileID: 1272186903}
-  switcher: {fileID: 0}
+  switcher: {fileID: 1752495665}
 --- !u!1 &1307546560
 GameObject:
   m_ObjectHideFlags: 0

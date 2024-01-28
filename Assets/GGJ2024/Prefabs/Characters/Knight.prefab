@@ -62,7 +62,7 @@ MonoBehaviour:
   animator: {fileID: 0}
   canStartle: 1
   waypoints: []
-  ragdollRelativeVelocity: 10
+  ragdollRelativeVelocity: 6
   forceRagdollDurationMultiplier: 0.5
   forceRagdollMinDuration: 2
   grabDistance: 1

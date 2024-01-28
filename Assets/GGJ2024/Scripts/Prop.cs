@@ -50,7 +50,8 @@ public abstract class Prop : MonoBehaviour, IInteractable
         rigidbody.isKinematic = false;
         Vector3 throwForceCurrent = playerTransform.TransformDirection(throwForce);
         rigidbody.AddForce(throwForceCurrent, ForceMode.Impulse);
-        transform.GetComponent<SpriteRenderer>().material = player.unflippedSpriteMaterial;
+        SpriteRenderer[] spriteRenderers = GetComponentsInChildren<SpriteRenderer>();
+        foreach (SpriteRenderer spriteRenderer in spriteRenderers) spriteRenderer.material = player.unflippedSpriteMaterial;
         StartCoroutine(DelayedHeld());
     }
 
