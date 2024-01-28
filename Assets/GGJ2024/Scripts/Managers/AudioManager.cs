@@ -1,21 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public static void PlaySFX(AudioClip clip, GameObject sourceObject, bool loop = false)
     {
         AudioSource newSource = sourceObject.AddComponent<AudioSource>();
@@ -23,5 +9,17 @@ public class AudioManager : MonoBehaviour
         newSource.loop = loop;
         newSource.Play();
         Destroy(newSource, clip.length);
+    }
+
+    public static void PlaySFXAtTransform(AudioClip clip, Transform transform, float volume = 1, float pitch = 1)
+    {
+        GameObject newObject = new("AudioSource");
+        newObject.transform.position = transform.position;
+        AudioSource newSource = newObject.AddComponent<AudioSource>();
+        newSource.clip = clip;
+        newSource.volume = volume;
+        newSource.pitch = pitch;
+        newSource.Play();
+        Destroy(newObject, clip.length);
     }
 }

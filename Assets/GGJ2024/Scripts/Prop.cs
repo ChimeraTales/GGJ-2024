@@ -3,7 +3,7 @@ using UnityEngine;
 
 public abstract class Prop : MonoBehaviour, IInteractable
 {
-    public string prompt = "Use";
+    public string prompt = "Throw";
 
     [HideInInspector] public bool isHeld;
 

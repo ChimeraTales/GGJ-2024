@@ -20,6 +20,7 @@ public class Player : Character
     Vector3 groundNormal, steepGroundNormal;
     PhysicMaterialCombine baseCombine;
     Vector2 walk;
+    Collider ragdollRootCollider;
 
     public bool Ragdoll
     {
@@ -55,6 +56,7 @@ public class Player : Character
         baseCollider = mainRigidbody.GetComponent<Collider>();
         baseDynamicFriction = baseCollider.material.dynamicFriction;
         baseCombine = baseCollider.material.frictionCombine;
+        ragdollRootCollider = ragdollRootRigidbody.GetComponent <Collider>();
     }
 
     private void OnWalk(InputValue value)

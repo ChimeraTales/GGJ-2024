@@ -95,7 +95,7 @@ public class HUD : MonoBehaviour
 
     private void SetTime()
     {
-        Time.timeScale = instance.pauseMenu.activeInHierarchy || instance.questMenu.activeInHierarchy ? 0 : 1;
+        Time.timeScale = instance.pauseMenu.activeInHierarchy ? 0 : 1;
     }
 
     public static void CompleteQuest(QuestTitle title)
