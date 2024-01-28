@@ -23,6 +23,10 @@ public class Horn : Prop
     {
         animationComponent.Play();
         foreach (NPC npc in currentNPCs) StartCoroutine(npc.ForceRagdoll(ragdollDuration, Vector3.up * ragdollForce, true));
+        if (currentNPCs.Count >= 3)
+        {
+            GameManager.CompleteQuest(QuestTitle.Startle3);
+        }
     }
 
     private void PlaySound()

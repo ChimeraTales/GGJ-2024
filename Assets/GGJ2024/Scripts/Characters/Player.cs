@@ -14,10 +14,9 @@ public class Player : Character
     [SerializeField] readonly LayerMask cameraZoneLayers;
     [SerializeField] Collider baseCollider;
     [SerializeField] bool jauntyRotate;
-    [SerializeField] SpriteRenderer midpointRenderer;
 
-    float lastX = 0, baseDynamicFriction;
-    bool hasRagdolled, isGrounded, ragdollLocked;
+    float lastX = 0, baseDynamicFriction, fallDuration;
+    bool hasRagdolled, isGrounded, ragdollLocked, fallComplete;
     Vector3 groundNormal, steepGroundNormal;
     PhysicMaterialCombine baseCombine;
     Vector2 walk;
@@ -128,9 +127,15 @@ public class Player : Character
             }
             groundNormal = closestHit.normal;
             steepGroundNormal = steepestHit.normal;
+            if (!fallComplete) fallDuration = 0;
             return true;
         }
-        else return false;
+        else if (!fallComplete)
+        {
+            fallDuration += Time.deltaTime;
+            if (fallDuration > 2) { GameManager.CompleteQuest(QuestTitle.Fall); fallComplete = true; }
+        }
+        return false;
     }
 
     private void SetRagdoll(bool enabled)
@@ -246,7 +251,12 @@ public class Player : Character
 
     private void OnMenu()
     {
-        HUD.TogglePause();
+        HUD.Escape();
+    }
+
+    private void OnQuests()
+    {
+        HUD.Quests();
     }
 
     private void OnTriggerEnter(Collider other)

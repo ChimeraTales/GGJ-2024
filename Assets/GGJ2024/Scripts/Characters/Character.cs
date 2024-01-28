@@ -1,10 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.U2D.Animation;
 
 public class Character : MonoBehaviour
 {
     public Transform holdTransform;
     public Rigidbody mainRigidbody, ragdollRootRigidbody;
+
+    [SerializeField] SpriteRenderer midpointRenderer;
+    [SerializeField] float layerSeparation = 0.005f;
 
     [HideInInspector] public Material spriteMaterial, flippedSpriteMaterial, unflippedSpriteMaterial;
     [HideInInspector] public Animator animator;
@@ -17,16 +21,22 @@ public class Character : MonoBehaviour
     protected virtual void Awake()
     {
         animator = GetComponentInChildren<Animator>();
-        SaveBoneZsRecursively(ragdollRootRigidbody.transform);
         unflippedSpriteMaterial = GetComponentInChildren<SpriteRenderer>().material;
         flippedSpriteMaterial = new(unflippedSpriteMaterial);
         flippedSpriteMaterial.SetInt("_SpriteFlipped", 1);
         spriteMaterial = new(unflippedSpriteMaterial);
-        foreach (SpriteRenderer spriteRenderer in GetComponentsInChildren<SpriteRenderer>())
+        int midpointRendererOrder = midpointRenderer.sortingOrder;
+        foreach (SpriteRenderer renderer in GetComponentsInChildren<SpriteRenderer>())
         {
-            spriteRenderer.material = spriteMaterial;
-            spriteRenderer.sortingOrder = 0;
+            float newZ = midpointRenderer.transform.position.z - (renderer.sortingOrder - midpointRendererOrder) * layerSeparation;
+            foreach (Transform bone in renderer.GetComponent<SpriteSkin>().boneTransforms)
+            {
+                bone.position = new Vector3(bone.position.x, bone.position.y, newZ);
+            }
+            renderer.material = spriteMaterial;
+            renderer.sortingOrder = 0;
         }
+        SaveBoneZsRecursively(ragdollRootRigidbody.transform);
     }
 
     protected void SaveBoneZsRecursively(Transform currentBone)
@@ -48,6 +58,7 @@ public class Character : MonoBehaviour
 
     public void Teleport(Vector3 destination, bool freeze = false)
     {
+        if (ragdoll) destination += Vector3.up * 0.5f;
         mainRigidbody.transform.position = destination;
         ragdollRootRigidbody.transform.position = destination;
         if (freeze)

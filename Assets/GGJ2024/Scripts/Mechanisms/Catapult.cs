@@ -43,11 +43,13 @@ public class Catapult : Mechanism
         return loadTransform.childCount == 0;
     }
 
-    private void Load(Transform transform)
+    private void Load(Transform loadedTransform)
     {
-        transform.GetComponent<Prop>().isHeld = false;
-        transform.SetParent(loadTransform, false);
-        transform.localPosition = new Vector3(0, transform.GetComponentsInChildren<Collider>(true).First(collider => !collider.isTrigger).bounds.extents.y, 0);
+        Vector3 scale = loadedTransform.lossyScale;
+        loadedTransform.GetComponent<Prop>().isHeld = false;
+        loadedTransform.SetParent(loadTransform, false);
+        loadedTransform.localPosition = new Vector3(0, loadedTransform.GetComponentsInChildren<Collider>(true).First(collider => !collider.isTrigger).bounds.extents.y, 0);
+        loadedTransform.localScale = transform.InverseTransformVector(scale);
     }
 
     private void Shoot()
@@ -56,7 +58,9 @@ public class Catapult : Mechanism
         if (loadTransform.childCount > 0)
         {
             Transform projectile = loadTransform.GetChild(0);
+            Vector3 scale = projectile.lossyScale;
             projectile.SetParent(null);
+            projectile.localScale = transform.TransformVector(scale);
             Rigidbody rigidbody = projectile.GetComponent<Rigidbody>();
             rigidbody.isKinematic = false;
             rigidbody.AddForce((targetTransform.position - loadTransform.position) * launchForce, ForceMode.Impulse);

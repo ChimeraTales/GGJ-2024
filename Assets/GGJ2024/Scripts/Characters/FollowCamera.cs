@@ -13,7 +13,7 @@ public class FollowCamera : MonoBehaviour
         }
     }
 
-    [SerializeField] float speed;
+    [SerializeField] float speed, viewSwitchSpeed;
     [SerializeField] Camera followCamera;
     [SerializeField] private CameraView currentView;
 
@@ -27,7 +27,7 @@ public class FollowCamera : MonoBehaviour
     void FixedUpdate()
     {
         if (target == null) return;
-        transform.SetPositionAndRotation(Vector3.Lerp(transform.position, (target.TryGetComponent<Player>(out Player player) ? player.FocusPoint : target).position, speed * Time.deltaTime), Quaternion.Slerp(transform.rotation, Quaternion.Euler(currentView.rotation), speed * Time.deltaTime));
+        transform.SetPositionAndRotation(Vector3.Lerp(transform.position, (target.TryGetComponent(out Player player) ? player.FocusPoint : target).position, viewSwitchSpeed * Time.deltaTime), Quaternion.Slerp(transform.rotation, Quaternion.Euler(currentView.rotation), viewSwitchSpeed * Time.deltaTime));
         followCamera.transform.localPosition = Vector3.Lerp(followCamera.transform.localPosition, currentView.position, speed * Time.deltaTime);
     }
 }
