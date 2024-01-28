@@ -10,7 +10,7 @@ public class NPC : Character
     [SerializeField] private Waypoint[] waypoints;
     [SerializeField] private float ragdollRelativeVelocity = 2, forceRagdollDurationMultiplier = 0.25f, forceRagdollMinDuration = 1f, grabDistance;
     [SerializeField] NavMeshAgent agent;
-    [SerializeField] Transform[] desiredObjects;
+    [SerializeField] Prop[] desiredObjects;
 
     float lastX = 0;
     Vector3 currentTarget;
@@ -132,13 +132,13 @@ public class NPC : Character
     private void GrabMostDesiredItem()
     {
         int lowestIndex = int.MaxValue;
-        Transform desiredTransform = null;
-        foreach (Transform item in interactables.Select(interactable => interactable.transform))
+        Prop desiredProp = null;
+        foreach (Prop item in interactables)
         {
-            int itemIndex = Array.IndexOf(desiredObjects, item);
-            if ((!item.GetComponent<Prop>().isHeld ||  (holdTransform.childCount > 0 && holdTransform.GetChild(0) == item)) && itemIndex < lowestIndex) { desiredTransform = item; lowestIndex = itemIndex; }
+            int itemIndex = Array.IndexOf(desiredObjects, desiredObjects.First(entry => entry.GetType() == item.GetType()));
+            if ((!item.isHeld ||  (holdTransform.childCount > 0 && holdTransform.GetChild(0) == item)) && itemIndex < lowestIndex) { desiredProp = item; lowestIndex = itemIndex; }
         }
-        if (desiredTransform != null && (holdTransform.childCount == 0 || Array.IndexOf(desiredObjects, holdTransform.GetChild(0)) > lowestIndex)) { Drop(); Grab(desiredTransform); }
+        if (desiredProp != null && (holdTransform.childCount == 0 || Array.IndexOf(desiredObjects, desiredObjects.First(entry => entry.GetType() == holdTransform.GetChild(0).GetComponent<Prop>().GetType())) > lowestIndex)) { Drop(); Grab(desiredProp.transform); }
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -151,7 +151,7 @@ public class NPC : Character
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.TryGetComponent(out Prop newProp) && desiredObjects.Contains(other.transform))
+        if (other.TryGetComponent(out Prop newProp) && desiredObjects.Any(prop => newProp.GetType() == prop.GetType()))
         {
             if (!interactables.Contains(newProp))
             {

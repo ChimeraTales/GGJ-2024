@@ -87,5 +87,6 @@ public enum QuestTitle
     Startle3,
     Well,
     Fall,
-    Fish
+    Fish,
+    Egg
 }

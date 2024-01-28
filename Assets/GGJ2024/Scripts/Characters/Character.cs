@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.U2D.Animation;
 
@@ -25,18 +26,30 @@ public class Character : MonoBehaviour
         flippedSpriteMaterial = new(unflippedSpriteMaterial);
         flippedSpriteMaterial.SetInt("_SpriteFlipped", 1);
         spriteMaterial = new(unflippedSpriteMaterial);
-        int midpointRendererOrder = midpointRenderer.sortingOrder;
-        foreach (SpriteRenderer renderer in GetComponentsInChildren<SpriteRenderer>())
+        SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>();
+        SetBoneZ(renderers, ragdollRootRigidbody.transform, midpointRenderer.sortingOrder);
+        foreach (SpriteRenderer renderer in renderers)
         {
-            float newZ = midpointRenderer.transform.position.z - (renderer.sortingOrder - midpointRendererOrder) * layerSeparation;
-            foreach (Transform bone in renderer.GetComponent<SpriteSkin>().boneTransforms)
-            {
-                bone.position = new Vector3(bone.position.x, bone.position.y, newZ);
-            }
             renderer.material = spriteMaterial;
             renderer.sortingOrder = 0;
         }
         SaveBoneZsRecursively(ragdollRootRigidbody.transform);
+    }
+
+    private void SetBoneZ(SpriteRenderer[] spriteRenderers, Transform transform, int midpoint)
+    {
+        if(spriteRenderers.Where(spriteRenderer => spriteRenderer.GetComponent<SpriteSkin>() != null).Any(spriteRenderer => spriteRenderer.GetComponent<SpriteSkin>().boneTransforms.Contains(transform)))
+        {
+            foreach (SpriteRenderer renderer in spriteRenderers.Where(spriteRenderer => spriteRenderer.GetComponent<SpriteSkin>().boneTransforms.Contains(transform)))
+            {
+                float newZ = (renderer.sortingOrder - midpoint) * -layerSeparation;
+                foreach (Transform bone in renderer.GetComponent<SpriteSkin>().boneTransforms)
+                {
+                    bone.position = new Vector3(bone.position.x, bone.position.y, newZ);
+                }
+            }
+        }
+        foreach (Transform childTransform in transform) SetBoneZ(spriteRenderers, childTransform, midpoint);
     }
 
     protected void SaveBoneZsRecursively(Transform currentBone)
