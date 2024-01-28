@@ -13,14 +13,13 @@ public class Player : Character
     [SerializeField] LayerMask groundedLayers;
     [SerializeField] readonly LayerMask cameraZoneLayers;
     [SerializeField] Collider baseCollider;
-    [SerializeField] bool jauntyRotate;
+    [SerializeField] bool jauntyRotate, sendRagdollToIntroManager;
 
     float lastX = 0, baseDynamicFriction, fallDuration;
     bool hasRagdolled, isGrounded, ragdollLocked, fallComplete;
     Vector3 groundNormal, steepGroundNormal;
     PhysicMaterialCombine baseCombine;
     Vector2 walk;
-    Collider ragdollRootCollider;
 
     public bool Ragdoll
     {
@@ -56,7 +55,6 @@ public class Player : Character
         baseCollider = mainRigidbody.GetComponent<Collider>();
         baseDynamicFriction = baseCollider.material.dynamicFriction;
         baseCombine = baseCollider.material.frictionCombine;
-        ragdollRootCollider = ragdollRootRigidbody.GetComponent <Collider>();
     }
 
     private void OnWalk(InputValue value)
@@ -67,6 +65,7 @@ public class Player : Character
     private void OnRagdoll(InputValue value)
     {
         Ragdoll = value.isPressed;
+        if (sendRagdollToIntroManager) { FindObjectOfType<IntroManager>().ragdoll = true; sendRagdollToIntroManager = false; }
     }
 
     private void LateUpdate()
