@@ -54,7 +54,7 @@ MonoBehaviour:
   throwForce: {x: 5, y: 5, z: 0}
   throwOffset: 0.1
   throwIsHeldDelay: 2
-  breakImpulse: 5
+  breakImpulse: 8
 --- !u!212 &6558876512272423194
 SpriteRenderer:
   m_ObjectHideFlags: 0

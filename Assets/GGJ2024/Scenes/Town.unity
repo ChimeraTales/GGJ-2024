@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1240008132}
-  m_IndirectSpecularColor: {r: 0.35570917, g: 0.7073326, b: 0.6142077, a: 1}
+  m_IndirectSpecularColor: {r: 0.3557092, g: 0.7073326, b: 0.6142077, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1675,9 +1675,9 @@ MonoBehaviour:
     description: Fall for more than 2 seconds.
     questImage: {fileID: 0}
     completed: 0
-  - title: 4
-    name: Fishy Business
-    description: Help the king catch a fish.
+  - title: 5
+    name: Splat
+    description: Throw an egg at the ground, hard.
     questImage: {fileID: 0}
     completed: 0
   sceneCountsTime: 1
